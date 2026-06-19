@@ -1,17 +1,22 @@
-cmake_minimum_required(VERSION 4.2)
-project(Inventory)
+cmake_minimum_required(VERSION 4.0.0)
+project(inventory_manager VERSION 1.0.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+# Project Files
+set(
+    PROJECT_SOURCES
+    src/inventory.cpp
+    src/utils.cpp
+    src/log.cpp
+    src/main.cpp
+)
 
-add_executable(Inventory main.cpp
-        food.h
-        beverage.h
-        inventory.h
-        inventory.cpp
-        log.h
-        Utils.h
-        audit.h
-        Color.h
-        Log.cpp
-        Utils.cpp
-        Audit.cpp)
+# Create the executable with the specified C++ Version
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+
+# Enable error checking and warning as errors
+target_compile_options(${PROJECT_NAME}
+    PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:${COMMON_WARNING_FLAGS} -Werror>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+)

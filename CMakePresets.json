@@ -1,0 +1,4396 @@
+{
+	"version": 6,
+	"cmakeMinimumRequired": {
+		"major": 4,
+		"minor": 0,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "base-settings",
+			"hidden": true,
+			"generator": "Ninja",
+			"cacheVariables": {
+				"CMAKE_CXX_EXTENSIONS": "OFF",
+				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+			},
+			"binaryDir": "${sourceDir}/build"
+		},
+		{
+			"name": "msvc-generator-base",
+			"displayName": "MSVC Base Generator",
+			"description": "Sets the generator for Microsoft Visual Studio builds.",
+			"hidden": true,
+			"generator": "Visual Studio 17 2022"
+		},
+		{
+			"name": "gcc-compiler",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "gcc",
+				"CMAKE_CXX_COMPILER": "g++"
+			}
+		},
+		{
+			"name": "llvm-compiler",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "clang",
+				"CMAKE_CXX_COMPILER": "clang++"
+			}
+		},
+		{
+			"name": "mingw-compiler",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
+				"CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++"
+			}
+		},
+		{
+			"name": "msvc-compiler",
+			"hidden": true,
+			"description": "MSVC compiler is selected automatically by the Visual Studio generator."
+		},
+		{
+			"name": "asan-lsan-base",
+			"displayName": "AddressSanitizer + LeakSanitizer (GCC/LLVM)",
+			"description": "Enables AddressSanitizer and LeakSanitizer for GCC/LLVM.",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "-fsanitize=address,leak -fno-omit-frame-pointer -O1 -g",
+				"CMAKE_C_FLAGS": "-fsanitize=address,leak -fno-omit-frame-pointer -O1 -g"
+			}
+		},
+		{
+			"name": "tsan-base",
+			"displayName": "ThreadSanitizer (GCC/LLVM)",
+			"description": "Enables ThreadSanitizer for GCC/LLVM.",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer -O1 -g",
+				"CMAKE_C_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer -O1 -g"
+			}
+		},
+		{
+			"name": "ubsan-base",
+			"displayName": "UndefinedBehaviorSanitizer (GCC/LLVM)",
+			"description": "Enables UndefinedBehaviorSanitizer (Logic Error Sanitizer) for GCC/LLVM.",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "-fsanitize=undefined -fno-omit-frame-pointer -O1 -g",
+				"CMAKE_C_FLAGS": "-fsanitize=undefined -fno-omit-frame-pointer -O1 -g"
+			}
+		},
+		{
+			"name": "msvc-asan-base",
+			"displayName": "AddressSanitizer (MSVC)",
+			"description": "Enables AddressSanitizer for MSVC.",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "/fsanitize=address",
+				"CMAKE_C_FLAGS": "/fsanitize=address"
+			}
+		},
+		{
+			"name": "dbg",
+			"displayName": "Debug Build",
+			"description": "Configures a debug build.",
+			"inherits": "base-settings",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/bin",
+				"CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build/lib",
+				"CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build/lib"
+			}
+		},
+		{
+			"name": "rdi",
+			"displayName": "Release with Debug Info Build",
+			"description": "Configures a release build with debug informations (RelWithDebInfo).",
+			"inherits": "base-settings",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
+				"CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/bin",
+				"CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build/lib",
+				"CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build/lib"
+			}
+		},
+		{
+			"name": "rel",
+			"displayName": "Release Build",
+			"description": "Configures a basic release build.",
+			"inherits": "base-settings",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/bin",
+				"CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build/lib",
+				"CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build/lib"
+			}
+		},
+		{
+			"name": "min",
+			"displayName": "Minimum Size Release Build",
+			"description": "Configures a minimum size release build (MinSizeRel).",
+			"inherits": "base-settings",
+			"hidden": true,
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "MinSizeRel",
+				"CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/bin",
+				"CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/build/lib",
+				"CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build/lib"
+			}
+		},
+		{
+			"name": "llvm-dbg",
+			"displayName": "Debug Build + LLVM (Clang)",
+			"description": "Configures a debug build with llvm (clang) compiler.",
+			"inherits": ["base-settings", "llvm-compiler", "dbg"]
+		},
+		{
+			"name": "llvm-rdi",
+			"displayName": "Release with Debug Info Build + LLVM (Clang)",
+			"description": "Configures a release with debug info build with llvm (clang) compiler.",
+			"inherits": ["base-settings", "llvm-compiler", "rdi"]
+		},
+		{
+			"name": "llvm-rel",
+			"displayName": "Release Build + LLVM (Clang)",
+			"description": "Configures a basic release build with llvm (clang) compiler.",
+			"inherits": ["base-settings", "llvm-compiler", "rel"]
+		},
+		{
+			"name": "llvm-min",
+			"displayName": "Minimum Size Release Build + LLVM (Clang)",
+			"description": "Configures a minimum size release build with llvm (clang) compiler.",
+			"inherits": ["base-settings", "llvm-compiler", "min"]
+		},
+		{
+			"name": "llvm-dbg-asan",
+			"displayName": "Debug Build + LLVM + ASan/LSan",
+			"description": "Configures a debug build with LLVM and Address/Leak Sanitizer.",
+			"inherits": ["llvm-dbg", "asan-lsan-base"]
+		},
+		{
+			"name": "llvm-rdi-asan",
+			"displayName": "RDI Build + LLVM + ASan/LSan",
+			"description": "Configures an RDI build with LLVM and Address/Leak Sanitizer.",
+			"inherits": ["llvm-rdi", "asan-lsan-base"]
+		},
+		{
+			"name": "llvm-rel-asan",
+			"displayName": "Release Build + LLVM + ASan/LSan",
+			"description": "Configures a Release build with LLVM and Address/Leak Sanitizer.",
+			"inherits": ["llvm-rel", "asan-lsan-base"]
+		},
+		{
+			"name": "llvm-dbg-tsan",
+			"displayName": "Debug Build + LLVM + TSan",
+			"description": "Configures a debug build with LLVM and Thread Sanitizer.",
+			"inherits": ["llvm-dbg", "tsan-base"]
+		},
+		{
+			"name": "llvm-rdi-tsan",
+			"displayName": "RDI Build + LLVM + TSan",
+			"description": "Configures an RDI build with LLVM and Thread Sanitizer.",
+			"inherits": ["llvm-rdi", "tsan-base"]
+		},
+		{
+			"name": "llvm-dbg-ubsan",
+			"displayName": "Debug Build + LLVM + UBSan",
+			"description": "Configures a debug build with LLVM and Undefined Behavior Sanitizer.",
+			"inherits": ["llvm-dbg", "ubsan-base"]
+		},
+		{
+			"name": "llvm-rdi-ubsan",
+			"displayName": "RDI Build + LLVM + UBSan",
+			"description": "Configures an RDI build with LLVM and Undefined Behavior Sanitizer.",
+			"inherits": ["llvm-rdi", "ubsan-base"]
+		},
+		{
+			"name": "gcc-dbg",
+			"displayName": "Debug Build + GCC",
+			"description": "Configures a debug build with gcc compiler.",
+			"inherits": ["base-settings", "gcc-compiler", "dbg"]
+		},
+		{
+			"name": "gcc-rdi",
+			"displayName": "Release with Debug Info Build + GCC",
+			"description": "Configures a release with debug info build with gcc compiler.",
+			"inherits": ["base-settings", "gcc-compiler", "rdi"]
+		},
+		{
+			"name": "gcc-rel",
+			"displayName": "Release Build + GCC",
+			"description": "Configures a basic release build with gcc compiler.",
+			"inherits": ["base-settings", "gcc-compiler", "rel"]
+		},
+		{
+			"name": "gcc-min",
+			"displayName": "Minimum Size Release Build + GCC",
+			"description": "Configures a minimum size release build with gcc compiler.",
+			"inherits": ["base-settings", "gcc-compiler", "min"]
+		},
+		{
+			"name": "gcc-dbg-asan",
+			"displayName": "Debug Build + GCC + ASan/LSan",
+			"description": "Configures a debug build with GCC and Address/Leak Sanitizer.",
+			"inherits": ["gcc-dbg", "asan-lsan-base"]
+		},
+		{
+			"name": "gcc-rdi-asan",
+			"displayName": "RDI Build + GCC + ASan/LSan",
+			"description": "Configures an RDI build with GCC and Address/Leak Sanitizer.",
+			"inherits": ["gcc-rdi", "asan-lsan-base"]
+		},
+		{
+			"name": "gcc-rel-asan",
+			"displayName": "Release Build + GCC + ASan/LSan",
+			"description": "Configures a Release build with GCC and Address/Leak Sanitizer.",
+			"inherits": ["gcc-rel", "asan-lsan-base"]
+		},
+		{
+			"name": "gcc-dbg-tsan",
+			"displayName": "Debug Build + GCC + TSan",
+			"description": "Configures a debug build with GCC and Thread Sanitizer.",
+			"inherits": ["gcc-dbg", "tsan-base"]
+		},
+		{
+			"name": "gcc-rdi-tsan",
+			"displayName": "RDI Build + GCC + TSan",
+			"description": "Configures an RDI build with GCC and Thread Sanitizer.",
+			"inherits": ["gcc-rdi", "tsan-base"]
+		},
+		{
+			"name": "gcc-dbg-ubsan",
+			"displayName": "Debug Build + GCC + UBSan",
+			"description": "Configures a debug build with GCC and Undefined Behavior Sanitizer.",
+			"inherits": ["gcc-dbg", "ubsan-base"]
+		},
+		{
+			"name": "gcc-rdi-ubsan",
+			"displayName": "RDI Build + GCC + UBSan",
+			"description": "Configures an RDI build with GCC and Undefined Behavior Sanitizer.",
+			"inherits": ["gcc-rdi", "ubsan-base"]
+		},
+		{
+			"name": "mingw-dbg",
+			"displayName": "Debug Build + MinGW",
+			"description": "Configures a debug build with x86_64-w64-mingw32 compiler (cross-compile for Windows).",
+			"inherits": ["base-settings", "mingw-compiler", "dbg"]
+		},
+		{
+			"name": "mingw-rdi",
+			"displayName": "Release with Debug Info Build + MinGW",
+			"description": "Configures a release with debug info build with x86_64-w64-mingw32 compiler (cross-compile for Windows).",
+			"inherits": ["base-settings", "mingw-compiler", "rdi"]
+		},
+		{
+			"name": "mingw-rel",
+			"displayName": "Release Build + MinGW",
+			"description": "Configures a basic release build with x86_64-w64-mingw32 compiler (cross-compile for Windows).",
+			"inherits": ["base-settings", "mingw-compiler", "rel"]
+		},
+		{
+			"name": "mingw-min",
+			"displayName": "Minimum Size Release Build + MinGW",
+			"description": "Configures a minimum size release build with x86_64-w64-mingw32 compiler (cross-compile for Windows).",
+			"inherits": ["base-settings", "mingw-compiler", "min"]
+		},
+		{
+			"name": "msvc-dbg",
+			"displayName": "Debug Build + MSVC",
+			"description": "Configures a debug build with MSVC compiler (Visual Studio Generator).",
+			"inherits": ["msvc-generator-base", "msvc-compiler", "dbg"]
+		},
+		{
+			"name": "msvc-rdi",
+			"displayName": "Release with Debug Info Build + MSVC",
+			"description": "Configures a release with debug info build with MSVC compiler (Visual Studio Generator).",
+			"inherits": ["msvc-generator-base", "msvc-compiler", "rdi"]
+		},
+		{
+			"name": "msvc-rel",
+			"displayName": "Release Build + MSVC",
+			"description": "Configures a basic release build with MSVC compiler (Visual Studio Generator).",
+			"inherits": ["msvc-generator-base", "msvc-compiler", "rel"]
+		},
+		{
+			"name": "msvc-min",
+			"displayName": "Minimum Size Release Build + MSVC",
+			"description": "Configures a minimum size release build with MSVC compiler (Visual Studio Generator).",
+			"inherits": ["msvc-generator-base", "msvc-compiler", "min"]
+		},
+		{
+			"name": "msvc-dbg-asan",
+			"displayName": "Debug Build + MSVC + ASan",
+			"description": "Configures a debug build with MSVC and Address Sanitizer.",
+			"inherits": ["msvc-dbg", "msvc-asan-base"]
+		},
+		{
+			"name": "msvc-rdi-asan",
+			"displayName": "RDI Build + MSVC + ASan",
+			"description": "Configures an RDI build with MSVC and Address Sanitizer.",
+			"inherits": ["msvc-rdi", "msvc-asan-base"]
+		},
+		{
+			"name": "msvc-rel-asan",
+			"displayName": "Release Build + MSVC + ASan",
+			"description": "Configures a Release build with MSVC and Address Sanitizer.",
+			"inherits": ["msvc-rel", "msvc-asan-base"]
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "build-dbg",
+			"displayName": "Build Debug (Generic)",
+			"configurePreset": "dbg"
+		},
+		{
+			"name": "build-rdi",
+			"displayName": "Build RelWithDebInfo (Generic)",
+			"configurePreset": "rdi"
+		},
+		{
+			"name": "build-rel",
+			"displayName": "Build Release (Generic)",
+			"configurePreset": "rel"
+		},
+		{
+			"name": "build-min",
+			"displayName": "Build MinSizeRel (Generic)",
+			"configurePreset": "min"
+		},
+		{
+			"name": "build-llvm-dbg",
+			"displayName": "Build Debug (LLVM/Clang)",
+			"configurePreset": "llvm-dbg"
+		},
+		{
+			"name": "build-llvm-rdi",
+			"displayName": "Build RelWithDebInfo (LLVM/Clang)",
+			"configurePreset": "llvm-rdi"
+		},
+		{
+			"name": "build-llvm-rel",
+			"displayName": "Build Release (LLVM/Clang)",
+			"configurePreset": "llvm-rel"
+		},
+		{
+			"name": "build-llvm-min",
+			"displayName": "Build MinSizeRel (LLVM/Clang)",
+			"configurePreset": "llvm-min"
+		},
+		{
+			"name": "build-llvm-dbg-asan",
+			"displayName": "Build Debug (LLVM/Clang + ASan/LSan)",
+			"configurePreset": "llvm-dbg-asan"
+		},
+		{
+			"name": "build-llvm-rdi-asan",
+			"displayName": "Build RDI (LLVM/Clang + ASan/LSan)",
+			"configurePreset": "llvm-rdi-asan"
+		},
+		{
+			"name": "build-llvm-rel-asan",
+			"displayName": "Build Release (LLVM/Clang + ASan/LSan)",
+			"configurePreset": "llvm-rel-asan"
+		},
+		{
+			"name": "build-llvm-dbg-tsan",
+			"displayName": "Build Debug (LLVM/Clang + TSan)",
+			"configurePreset": "llvm-dbg-tsan"
+		},
+		{
+			"name": "build-llvm-rdi-tsan",
+			"displayName": "Build RDI (LLVM/Clang + TSan)",
+			"configurePreset": "llvm-rdi-tsan"
+		},
+		{
+			"name": "build-llvm-dbg-ubsan",
+			"displayName": "Build Debug (LLVM/Clang + UBSan)",
+			"configurePreset": "llvm-dbg-ubsan"
+		},
+		{
+			"name": "build-llvm-rdi-ubsan",
+			"displayName": "Build RDI (LLVM/Clang + UBSan)",
+			"configurePreset": "llvm-rdi-ubsan"
+		},
+		{
+			"name": "build-gcc-dbg",
+			"displayName": "Build Debug (GCC)",
+			"configurePreset": "gcc-dbg"
+		},
+		{
+			"name": "build-gcc-rdi",
+			"displayName": "Build RelWithDebInfo (GCC)",
+			"configurePreset": "gcc-rdi"
+		},
+		{
+			"name": "build-gcc-rel",
+			"displayName": "Build Release (GCC)",
+			"configurePreset": "gcc-rel"
+		},
+		{
+			"name": "build-gcc-min",
+			"displayName": "Build MinSizeRel (GCC)",
+			"configurePreset": "gcc-min"
+		},
+		{
+			"name": "build-gcc-dbg-asan",
+			"displayName": "Build Debug (GCC + ASan/LSan)",
+			"configurePreset": "gcc-dbg-asan"
+		},
+		{
+			"name": "build-gcc-rdi-asan",
+			"displayName": "Build RDI (GCC + ASan/LSan)",
+			"configurePreset": "gcc-rdi-asan"
+		},
+		{
+			"name": "build-gcc-rel-asan",
+			"displayName": "Build Release (GCC + ASan/LSan)",
+			"configurePreset": "gcc-rel-asan"
+		},
+		{
+			"name": "build-gcc-dbg-tsan",
+			"displayName": "Build Debug (GCC + TSan)",
+			"configurePreset": "gcc-dbg-tsan"
+		},
+		{
+			"name": "build-gcc-rdi-tsan",
+			"displayName": "Build RDI (GCC + TSan)",
+			"configurePreset": "gcc-rdi-tsan"
+		},
+		{
+			"name": "build-gcc-dbg-ubsan",
+			"displayName": "Build Debug (GCC + UBSan)",
+			"configurePreset": "gcc-dbg-ubsan"
+		},
+		{
+			"name": "build-gcc-rdi-ubsan",
+			"displayName": "Build RDI (GCC + UBSan)",
+			"configurePreset": "gcc-rdi-ubsan"
+		},
+		{
+			"name": "build-mingw-dbg",
+			"displayName": "Build Debug (MinGW)",
+			"configurePreset": "mingw-dbg"
+		},
+		{
+			"name": "build-mingw-rdi",
+			"displayName": "Build RelWithDebInfo (MinGW)",
+			"configurePreset": "mingw-rdi"
+		},
+		{
+			"name": "build-mingw-rel",
+			"displayName": "Build Release (MinGW)",
+			"configurePreset": "mingw-rel"
+		},
+		{
+			"name": "build-mingw-min",
+			"displayName": "Build MinSizeRel (MinGW)",
+			"configurePreset": "mingw-min"
+		},
+		{
+			"name": "build-msvc-dbg",
+			"displayName": "Build Debug (MSVC)",
+			"configurePreset": "msvc-dbg"
+		},
+		{
+			"name": "build-msvc-rdi",
+			"displayName": "Build RelWithDebInfo (MSVC)",
+			"configurePreset": "msvc-rdi"
+		},
+		{
+			"name": "build-msvc-rel",
+			"displayName": "Build Release (MSVC)",
+			"configurePreset": "msvc-rel"
+		},
+		{
+			"name": "build-msvc-min",
+			"displayName": "Build MinSizeRel (MSVC)",
+			"configurePreset": "msvc-min"
+		},
+		{
+			"name": "build-msvc-dbg-asan",
+			"displayName": "Build Debug (MSVC + ASan)",
+			"configurePreset": "msvc-dbg-asan"
+		},
+		{
+			"name": "build-msvc-rdi-asan",
+			"displayName": "Build RDI (MSVC + ASan)",
+			"configurePreset": "msvc-rdi-asan"
+		},
+		{
+			"name": "build-msvc-rel-asan",
+			"displayName": "Build Release (MSVC + ASan)",
+			"configurePreset": "msvc-rel-asan"
+		}
+	],
+	"packagePresets": [
+		{
+			"name": "base-linux",
+			"displayName": "Package for Linux (Archives)",
+			"description": "Packages the build into standard Linux archive formats.",
+			"hidden": true,
+			"generators": ["TGZ", "ZIP", "STGZ", "7Z"]
+		},
+		{
+			"name": "deb-linux",
+			"displayName": "Package for Debian-based Linux (deb)",
+			"description": "Packages the build into standard Debian-based Linux package formats. (deb only)",
+			"hidden": true,
+			"inherits": "base-linux",
+			"generators": ["deb"]
+		},
+		{
+			"name": "rpm-linux",
+			"displayName": "Package for RPM-based Linux (RPM)",
+			"description": "Packages the build into standard rpm-based Linux package formats. (RPM only)",
+			"hidden": true,
+			"inherits": "base-linux",
+			"generators": ["RPM"]
+		},
+		{
+			"name": "windows",
+			"displayName": "Package for Windows",
+			"description": "Packages the build into standard Windows package formats.",
+			"hidden": true,
+			"generators": ["ZIP", "NSIS", "WiX"]
+		},
+		{
+			"name": "macos",
+			"displayName": "Package for macOS",
+			"description": "Packages the build into standard macOS package formats.",
+			"hidden": true,
+			"generators": ["ZIP", "Bundle"]
+		},
+		{
+			"name": "linux-llvm-dbg",
+			"displayName": "Package Debug for Linux (LLVM Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-dbg"
+		},
+		{
+			"name": "linux-llvm-rdi",
+			"displayName": "Package RDI for Linux (LLVM Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-rdi"
+		},
+		{
+			"name": "linux-llvm-rel",
+			"displayName": "Package Release for Linux (LLVM Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-rel"
+		},
+		{
+			"name": "linux-llvm-min",
+			"displayName": "Package MinSizeRel for Linux (LLVM Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-min"
+		},
+		{
+			"name": "linux-llvm-dbg-asan",
+			"displayName": "Package Debug for Linux (LLVM ASan/LSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-dbg-asan"
+		},
+		{
+			"name": "linux-llvm-rdi-asan",
+			"displayName": "Package RDI for Linux (LLVM ASan/LSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-rdi-asan"
+		},
+		{
+			"name": "linux-llvm-rel-asan",
+			"displayName": "Package Release for Linux (LLVM ASan/LSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-rel-asan"
+		},
+		{
+			"name": "linux-llvm-dbg-tsan",
+			"displayName": "Package Debug for Linux (LLVM TSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-dbg-tsan"
+		},
+		{
+			"name": "linux-llvm-rdi-tsan",
+			"displayName": "Package RDI for Linux (LLVM TSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-rdi-tsan"
+		},
+		{
+			"name": "linux-llvm-dbg-ubsan",
+			"displayName": "Package Debug for Linux (LLVM UBSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-dbg-ubsan"
+		},
+		{
+			"name": "linux-llvm-rdi-ubsan",
+			"displayName": "Package RDI for Linux (LLVM UBSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "llvm-rdi-ubsan"
+		},
+		{
+			"name": "linux-gcc-dbg",
+			"displayName": "Package Debug for Linux (GCC Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-dbg"
+		},
+		{
+			"name": "linux-gcc-rdi",
+			"displayName": "Package RDI for Linux (GCC Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-rdi"
+		},
+		{
+			"name": "linux-gcc-rel",
+			"displayName": "Package Release for Linux (GCC Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-rel"
+		},
+		{
+			"name": "linux-gcc-min",
+			"displayName": "Package MinSizeRel for Linux (GCC Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-min"
+		},
+		{
+			"name": "linux-gcc-dbg-asan",
+			"displayName": "Package Debug for Linux (GCC ASan/LSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-dbg-asan"
+		},
+		{
+			"name": "linux-gcc-rdi-asan",
+			"displayName": "Package RDI for Linux (GCC ASan/LSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-rdi-asan"
+		},
+		{
+			"name": "linux-gcc-rel-asan",
+			"displayName": "Package Release for Linux (GCC ASan/LSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-rel-asan"
+		},
+		{
+			"name": "linux-gcc-dbg-tsan",
+			"displayName": "Package Debug for Linux (GCC TSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-dbg-tsan"
+		},
+		{
+			"name": "linux-gcc-rdi-tsan",
+			"displayName": "Package RDI for Linux (GCC TSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-rdi-tsan"
+		},
+		{
+			"name": "linux-gcc-dbg-ubsan",
+			"displayName": "Package Debug for Linux (GCC UBSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-dbg-ubsan"
+		},
+		{
+			"name": "linux-gcc-rdi-ubsan",
+			"displayName": "Package RDI for Linux (GCC UBSan Archives)",
+			"inherits": "base-linux",
+			"configurePreset": "gcc-rdi-ubsan"
+		},
+		{
+			"name": "deb-llvm-dbg",
+			"displayName": "Package Debug for Debian (LLVM Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-dbg"
+		},
+		{
+			"name": "deb-llvm-rdi",
+			"displayName": "Package RDI for Debian (LLVM Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-rdi"
+		},
+		{
+			"name": "deb-llvm-rel",
+			"displayName": "Package Release for Debian (LLVM Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-rel"
+		},
+		{
+			"name": "deb-llvm-min",
+			"displayName": "Package MinSizeRel for Debian (LLVM Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-min"
+		},
+		{
+			"name": "deb-llvm-dbg-asan",
+			"displayName": "Package Debug for Debian (LLVM ASan/LSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-dbg-asan"
+		},
+		{
+			"name": "deb-llvm-rdi-asan",
+			"displayName": "Package RDI for Debian (LLVM ASan/LSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-rdi-asan"
+		},
+		{
+			"name": "deb-llvm-rel-asan",
+			"displayName": "Package Release for Debian (LLVM ASan/LSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-rel-asan"
+		},
+		{
+			"name": "deb-llvm-dbg-tsan",
+			"displayName": "Package Debug for Debian (LLVM TSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-dbg-tsan"
+		},
+		{
+			"name": "deb-llvm-rdi-tsan",
+			"displayName": "Package RDI for Debian (LLVM TSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-rdi-tsan"
+		},
+		{
+			"name": "deb-llvm-dbg-ubsan",
+			"displayName": "Package Debug for Debian (LLVM UBSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-dbg-ubsan"
+		},
+		{
+			"name": "deb-llvm-rdi-ubsan",
+			"displayName": "Package RDI for Debian (LLVM UBSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "llvm-rdi-ubsan"
+		},
+		{
+			"name": "deb-gcc-dbg",
+			"displayName": "Package Debug for Debian (GCC Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-dbg"
+		},
+		{
+			"name": "deb-gcc-rdi",
+			"displayName": "Package RDI for Debian (GCC Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-rdi"
+		},
+		{
+			"name": "deb-gcc-rel",
+			"displayName": "Package Release for Debian (GCC Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-rel"
+		},
+		{
+			"name": "deb-gcc-min",
+			"displayName": "Package MinSizeRel for Debian (GCC Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-min"
+		},
+		{
+			"name": "deb-gcc-dbg-asan",
+			"displayName": "Package Debug for Debian (GCC ASan/LSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-dbg-asan"
+		},
+		{
+			"name": "deb-gcc-rdi-asan",
+			"displayName": "Package RDI for Debian (GCC ASan/LSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-rdi-asan"
+		},
+		{
+			"name": "deb-gcc-rel-asan",
+			"displayName": "Package Release for Debian (GCC ASan/LSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-rel-asan"
+		},
+		{
+			"name": "deb-gcc-dbg-tsan",
+			"displayName": "Package Debug for Debian (GCC TSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-dbg-tsan"
+		},
+		{
+			"name": "deb-gcc-rdi-tsan",
+			"displayName": "Package RDI for Debian (GCC TSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-rdi-tsan"
+		},
+		{
+			"name": "deb-gcc-dbg-ubsan",
+			"displayName": "Package Debug for Debian (GCC UBSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-dbg-ubsan"
+		},
+		{
+			"name": "deb-gcc-rdi-ubsan",
+			"displayName": "Package RDI for Debian (GCC UBSan Debian)",
+			"inherits": "deb-linux",
+			"configurePreset": "gcc-rdi-ubsan"
+		},
+		{
+			"name": "rpm-llvm-dbg",
+			"displayName": "Package Debug for RPM (LLVM RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-dbg"
+		},
+		{
+			"name": "rpm-llvm-rdi",
+			"displayName": "Package RDI for RPM (LLVM RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-rdi"
+		},
+		{
+			"name": "rpm-llvm-rel",
+			"displayName": "Package Release for RPM (LLVM RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-rel"
+		},
+		{
+			"name": "rpm-llvm-min",
+			"displayName": "Package MinSizeRel for RPM (LLVM RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-min"
+		},
+		{
+			"name": "rpm-llvm-dbg-asan",
+			"displayName": "Package Debug for RPM (LLVM ASan/LSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-dbg-asan"
+		},
+		{
+			"name": "rpm-llvm-rdi-asan",
+			"displayName": "Package RDI for RPM (LLVM ASan/LSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-rdi-asan"
+		},
+		{
+			"name": "rpm-llvm-rel-asan",
+			"displayName": "Package Release for RPM (LLVM ASan/LSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-rel-asan"
+		},
+		{
+			"name": "rpm-llvm-dbg-tsan",
+			"displayName": "Package Debug for RPM (LLVM TSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-dbg-tsan"
+		},
+		{
+			"name": "rpm-llvm-rdi-tsan",
+			"displayName": "Package RDI for RPM (LLVM TSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-rdi-tsan"
+		},
+		{
+			"name": "rpm-llvm-dbg-ubsan",
+			"displayName": "Package Debug for RPM (LLVM UBSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-dbg-ubsan"
+		},
+		{
+			"name": "rpm-llvm-rdi-ubsan",
+			"displayName": "Package RDI for RPM (LLVM UBSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "llvm-rdi-ubsan"
+		},
+		{
+			"name": "rpm-gcc-dbg",
+			"displayName": "Package Debug for RPM (GCC RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-dbg"
+		},
+		{
+			"name": "rpm-gcc-rdi",
+			"displayName": "Package RDI for RPM (GCC RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-rdi"
+		},
+		{
+			"name": "rpm-gcc-rel",
+			"displayName": "Package Release for RPM (GCC RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-rel"
+		},
+		{
+			"name": "rpm-gcc-min",
+			"displayName": "Package MinSizeRel for RPM (GCC RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-min"
+		},
+		{
+			"name": "rpm-gcc-dbg-asan",
+			"displayName": "Package Debug for RPM (GCC ASan/LSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-dbg-asan"
+		},
+		{
+			"name": "rpm-gcc-rdi-asan",
+			"displayName": "Package RDI for RPM (GCC ASan/LSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-rdi-asan"
+		},
+		{
+			"name": "rpm-gcc-rel-asan",
+			"displayName": "Package Release for RPM (GCC ASan/LSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-rel-asan"
+		},
+		{
+			"name": "rpm-gcc-dbg-tsan",
+			"displayName": "Package Debug for RPM (GCC TSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-dbg-tsan"
+		},
+		{
+			"name": "rpm-gcc-rdi-tsan",
+			"displayName": "Package RDI for RPM (GCC TSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-rdi-tsan"
+		},
+		{
+			"name": "rpm-gcc-dbg-ubsan",
+			"displayName": "Package Debug for RPM (GCC UBSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-dbg-ubsan"
+		},
+		{
+			"name": "rpm-gcc-rdi-ubsan",
+			"displayName": "Package RDI for RPM (GCC UBSan RPM)",
+			"inherits": "rpm-linux",
+			"configurePreset": "gcc-rdi-ubsan"
+		},
+		{
+			"name": "windows-llvm-dbg",
+			"displayName": "Package Debug for Windows (LLVM)",
+			"inherits": "windows",
+			"configurePreset": "llvm-dbg"
+		},
+		{
+			"name": "windows-llvm-rdi",
+			"displayName": "Package Release with Debug Info for Windows (LLVM)",
+			"inherits": "windows",
+			"configurePreset": "llvm-rdi"
+		},
+		{
+			"name": "windows-llvm-rel",
+			"displayName": "Package Release for Windows (LLVM)",
+			"inherits": "windows",
+			"configurePreset": "llvm-rel"
+		},
+		{
+			"name": "windows-llvm-min",
+			"displayName": "Package Minimum Size Release for Windows (LLVM)",
+			"inherits": "windows",
+			"configurePreset": "llvm-min"
+		},
+		{
+			"name": "windows-llvm-dbg-asan",
+			"displayName": "Package Debug for Windows (LLVM ASan/LSan)",
+			"inherits": "windows",
+			"configurePreset": "llvm-dbg-asan"
+		},
+		{
+			"name": "windows-llvm-rdi-asan",
+			"displayName": "Package RDI for Windows (LLVM ASan/LSan)",
+			"inherits": "windows",
+			"configurePreset": "llvm-rdi-asan"
+		},
+		{
+			"name": "windows-llvm-rel-asan",
+			"displayName": "Package Release for Windows (LLVM ASan/LSan)",
+			"inherits": "windows",
+			"configurePreset": "llvm-rel-asan"
+		},
+		{
+			"name": "windows-llvm-dbg-tsan",
+			"displayName": "Package Debug for Windows (LLVM TSan)",
+			"inherits": "windows",
+			"configurePreset": "llvm-dbg-tsan"
+		},
+		{
+			"name": "windows-llvm-rdi-tsan",
+			"displayName": "Package RDI for Windows (LLVM TSan)",
+			"inherits": "windows",
+			"configurePreset": "llvm-rdi-tsan"
+		},
+		{
+			"name": "windows-llvm-dbg-ubsan",
+			"displayName": "Package Debug for Windows (LLVM UBSan)",
+			"inherits": "windows",
+			"configurePreset": "llvm-dbg-ubsan"
+		},
+		{
+			"name": "windows-llvm-rdi-ubsan",
+			"displayName": "Package RDI for Windows (LLVM UBSan)",
+			"inherits": "windows",
+			"configurePreset": "llvm-rdi-ubsan"
+		},
+		{
+			"name": "windows-gcc-dbg",
+			"displayName": "Package Debug for Windows (GCC)",
+			"inherits": "windows",
+			"configurePreset": "gcc-dbg"
+		},
+		{
+			"name": "windows-gcc-rdi",
+			"displayName": "Package Release with Debug Info for Windows (GCC)",
+			"inherits": "windows",
+			"configurePreset": "gcc-rdi"
+		},
+		{
+			"name": "windows-gcc-rel",
+			"displayName": "Package Release for Windows (GCC)",
+			"inherits": "windows",
+			"configurePreset": "gcc-rel"
+		},
+		{
+			"name": "windows-gcc-min",
+			"displayName": "Package Minimum Size Release for Windows (GCC)",
+			"inherits": "windows",
+			"configurePreset": "gcc-min"
+		},
+		{
+			"name": "windows-gcc-dbg-asan",
+			"displayName": "Package Debug for Windows (GCC ASan/LSan)",
+			"inherits": "windows",
+			"configurePreset": "gcc-dbg-asan"
+		},
+		{
+			"name": "windows-gcc-rdi-asan",
+			"displayName": "Package RDI for Windows (GCC ASan/LSan)",
+			"inherits": "windows",
+			"configurePreset": "gcc-rdi-asan"
+		},
+		{
+			"name": "windows-gcc-rel-asan",
+			"displayName": "Package Release for Windows (GCC ASan/LSan)",
+			"inherits": "windows",
+			"configurePreset": "gcc-rel-asan"
+		},
+		{
+			"name": "windows-gcc-dbg-tsan",
+			"displayName": "Package Debug for Windows (GCC TSan)",
+			"inherits": "windows",
+			"configurePreset": "gcc-dbg-tsan"
+		},
+		{
+			"name": "windows-gcc-rdi-tsan",
+			"displayName": "Package RDI for Windows (GCC TSan)",
+			"inherits": "windows",
+			"configurePreset": "gcc-rdi-tsan"
+		},
+		{
+			"name": "windows-gcc-dbg-ubsan",
+			"displayName": "Package Debug for Windows (GCC UBSan)",
+			"inherits": "windows",
+			"configurePreset": "gcc-dbg-ubsan"
+		},
+		{
+			"name": "windows-gcc-rdi-ubsan",
+			"displayName": "Package RDI for Windows (GCC UBSan)",
+			"inherits": "windows",
+			"configurePreset": "gcc-rdi-ubsan"
+		},
+		{
+			"name": "windows-mingw-dbg",
+			"displayName": "Package Debug for Windows (MinGW)",
+			"inherits": "windows",
+			"configurePreset": "mingw-dbg"
+		},
+		{
+			"name": "windows-mingw-rdi",
+			"displayName": "Package Release with Debug Info for Windows (MinGW)",
+			"inherits": "windows",
+			"configurePreset": "mingw-rdi"
+		},
+		{
+			"name": "windows-mingw-rel",
+			"displayName": "Package Release for Windows (MinGW)",
+			"inherits": "windows",
+			"configurePreset": "mingw-rel"
+		},
+		{
+			"name": "windows-mingw-min",
+			"displayName": "Package Minimum Size Release for Windows (MinGW)",
+			"inherits": "windows",
+			"configurePreset": "mingw-min"
+		},
+		{
+			"name": "windows-msvc-dbg",
+			"displayName": "Package Debug for Windows (MSVC)",
+			"inherits": "windows",
+			"configurePreset": "msvc-dbg"
+		},
+		{
+			"name": "windows-msvc-rdi",
+			"displayName": "Package Release with Debug Info for Windows (MSVC)",
+			"inherits": "windows",
+			"configurePreset": "msvc-rdi"
+		},
+		{
+			"name": "windows-msvc-rel",
+			"displayName": "Package Release for Windows (MSVC)",
+			"inherits": "windows",
+			"configurePreset": "msvc-rel"
+		},
+		{
+			"name": "windows-msvc-min",
+			"displayName": "Package Minimum Size Release for Windows (MSVC)",
+			"inherits": "windows",
+			"configurePreset": "msvc-min"
+		},
+		{
+			"name": "windows-msvc-dbg-asan",
+			"displayName": "Package Debug for Windows (MSVC ASan)",
+			"inherits": "windows",
+			"configurePreset": "msvc-dbg-asan"
+		},
+		{
+			"name": "windows-msvc-rdi-asan",
+			"displayName": "Package RDI for Windows (MSVC ASan)",
+			"inherits": "windows",
+			"configurePreset": "msvc-rdi-asan"
+		},
+		{
+			"name": "windows-msvc-rel-asan",
+			"displayName": "Package Release for Windows (MSVC ASan)",
+			"inherits": "windows",
+			"configurePreset": "msvc-rel-asan"
+		},
+		{
+			"name": "macos-llvm-dbg",
+			"displayName": "Package Debug for macOS (LLVM)",
+			"inherits": "macos",
+			"configurePreset": "llvm-dbg"
+		},
+		{
+			"name": "macos-llvm-rdi",
+			"displayName": "Package Release with Debug Info for macOS (LLVM)",
+			"inherits": "macos",
+			"configurePreset": "llvm-rdi"
+		},
+		{
+			"name": "macos-llvm-rel",
+			"displayName": "Package Release for macOS (LLVM)",
+			"inherits": "macos",
+			"configurePreset": "llvm-rel"
+		},
+		{
+			"name": "macos-llvm-min",
+			"displayName": "Package Minimum Size Release for macOS (LLVM)",
+			"inherits": "macos",
+			"configurePreset": "llvm-min"
+		},
+		{
+			"name": "macos-llvm-dbg-asan",
+			"displayName": "Package Debug for macOS (LLVM ASan/LSan)",
+			"inherits": "macos",
+			"configurePreset": "llvm-dbg-asan"
+		},
+		{
+			"name": "macos-llvm-rdi-asan",
+			"displayName": "Package RDI for macOS (LLVM ASan/LSan)",
+			"inherits": "macos",
+			"configurePreset": "llvm-rdi-asan"
+		},
+		{
+			"name": "macos-llvm-rel-asan",
+			"displayName": "Package Release for macOS (LLVM ASan/LSan)",
+			"inherits": "macos",
+			"configurePreset": "llvm-rel-asan"
+		},
+		{
+			"name": "macos-llvm-dbg-tsan",
+			"displayName": "Package Debug for macOS (LLVM TSan)",
+			"inherits": "macos",
+			"configurePreset": "llvm-dbg-tsan"
+		},
+		{
+			"name": "macos-llvm-rdi-tsan",
+			"displayName": "Package RDI for macOS (LLVM TSan)",
+			"inherits": "macos",
+			"configurePreset": "llvm-rdi-tsan"
+		},
+		{
+			"name": "macos-llvm-dbg-ubsan",
+			"displayName": "Package Debug for macOS (LLVM UBSan)",
+			"inherits": "macos",
+			"configurePreset": "llvm-dbg-ubsan"
+		},
+		{
+			"name": "macos-llvm-rdi-ubsan",
+			"displayName": "Package RDI for macOS (LLVM UBSan)",
+			"inherits": "macos",
+			"configurePreset": "llvm-rdi-ubsan"
+		},
+		{
+			"name": "macos-gcc-dbg",
+			"displayName": "Package Debug for macOS (GCC)",
+			"inherits": "macos",
+			"configurePreset": "gcc-dbg"
+		},
+		{
+			"name": "macos-gcc-rdi",
+			"displayName": "Package Release with Debug Info for macOS (GCC)",
+			"inherits": "macos",
+			"configurePreset": "gcc-rdi"
+		},
+		{
+			"name": "macos-gcc-rel",
+			"displayName": "Package Release for macOS (GCC)",
+			"inherits": "macos",
+			"configurePreset": "gcc-rel"
+		},
+		{
+			"name": "macos-gcc-min",
+			"displayName": "Package Minimum Size Release for macOS (GCC)",
+			"inherits": "macos",
+			"configurePreset": "gcc-min"
+		},
+		{
+			"name": "macos-gcc-dbg-asan",
+			"displayName": "Package Debug for macOS (GCC ASan/LSan)",
+			"inherits": "macos",
+			"configurePreset": "gcc-dbg-asan"
+		},
+		{
+			"name": "macos-gcc-rdi-asan",
+			"displayName": "Package RDI for macOS (GCC ASan/LSan)",
+			"inherits": "macos",
+			"configurePreset": "gcc-rdi-asan"
+		},
+		{
+			"name": "macos-gcc-rel-asan",
+			"displayName": "Package Release for macOS (GCC ASan/LSan)",
+			"inherits": "macos",
+			"configurePreset": "gcc-rel-asan"
+		},
+		{
+			"name": "macos-gcc-dbg-tsan",
+			"displayName": "Package Debug for macOS (GCC TSan)",
+			"inherits": "macos",
+			"configurePreset": "gcc-dbg-tsan"
+		},
+		{
+			"name": "macos-gcc-rdi-tsan",
+			"displayName": "Package RDI for macOS (GCC TSan)",
+			"inherits": "macos",
+			"configurePreset": "gcc-rdi-tsan"
+		},
+		{
+			"name": "macos-gcc-dbg-ubsan",
+			"displayName": "Package Debug for macOS (GCC UBSan)",
+			"inherits": "macos",
+			"configurePreset": "gcc-dbg-ubsan"
+		},
+		{
+			"name": "macos-gcc-rdi-ubsan",
+			"displayName": "Package RDI for macOS (GCC UBSan)",
+			"inherits": "macos",
+			"configurePreset": "gcc-rdi-ubsan"
+		}
+	],
+	"workflowPresets": [
+		{
+			"name": "test-linux-llvm-dbg",
+			"displayName": "Linux Debug Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-rdi",
+			"displayName": "Linux RDI Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-rel",
+			"displayName": "Linux Release Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-min",
+			"displayName": "Linux MinSizeRel Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-dbg-asan",
+			"displayName": "Linux Debug Build (LLVM + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-rdi-asan",
+			"displayName": "Linux RDI Build (LLVM + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-dbg-tsan",
+			"displayName": "Linux Debug Build (LLVM + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-rdi-tsan",
+			"displayName": "Linux RDI Build (LLVM + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-dbg-ubsan",
+			"displayName": "Linux Debug Build (LLVM + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-llvm-rdi-ubsan",
+			"displayName": "Linux RDI Build (LLVM + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-dbg",
+			"displayName": "Linux Debug Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-rdi",
+			"displayName": "Linux RDI Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-rel",
+			"displayName": "Linux Release Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-min",
+			"displayName": "Linux MinSizeRel Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-dbg-asan",
+			"displayName": "Linux Debug Build (GCC + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-rdi-asan",
+			"displayName": "Linux RDI Build (GCC + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-dbg-tsan",
+			"displayName": "Linux Debug Build (GCC + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-rdi-tsan",
+			"displayName": "Linux RDI Build (GCC + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-dbg-ubsan",
+			"displayName": "Linux Debug Build (GCC + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-linux-gcc-rdi-ubsan",
+			"displayName": "Linux RDI Build (GCC + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-dbg",
+			"displayName": "Windows Debug Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-rdi",
+			"displayName": "Windows RDI Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-rel",
+			"displayName": "Windows Release Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-min",
+			"displayName": "Windows MinSizeRel Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-dbg-asan",
+			"displayName": "Windows Debug Build (LLVM + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-rdi-asan",
+			"displayName": "Windows RDI Build (LLVM + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-dbg-tsan",
+			"displayName": "Windows Debug Build (LLVM + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-rdi-tsan",
+			"displayName": "Windows RDI Build (LLVM + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-dbg-ubsan",
+			"displayName": "Windows Debug Build (LLVM + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-llvm-rdi-ubsan",
+			"displayName": "Windows RDI Build (LLVM + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-dbg",
+			"displayName": "Windows Debug Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-rdi",
+			"displayName": "Windows RDI Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-rel",
+			"displayName": "Windows Release Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-min",
+			"displayName": "Windows MinSizeRel Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-dbg-asan",
+			"displayName": "Windows Debug Build (GCC + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-rdi-asan",
+			"displayName": "Windows RDI Build (GCC + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-dbg-tsan",
+			"displayName": "Windows Debug Build (GCC + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-rdi-tsan",
+			"displayName": "Windows RDI Build (GCC + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-dbg-ubsan",
+			"displayName": "Windows Debug Build (GCC + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-gcc-rdi-ubsan",
+			"displayName": "Windows RDI Build (GCC + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-msvc-dbg",
+			"displayName": "Windows Debug Build (MSVC)",
+			"description": "Configures and builds the MSVC debug build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-dbg"
+				}
+			]
+		},
+		{
+			"name": "test-windows-msvc-rdi",
+			"displayName": "Windows RDI Build (MSVC)",
+			"description": "Configures and builds the MSVC RDI build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-rdi"
+				}
+			]
+		},
+		{
+			"name": "test-windows-msvc-rel",
+			"displayName": "Windows Release Build (MSVC)",
+			"description": "Configures and builds the MSVC release build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-rel"
+				}
+			]
+		},
+		{
+			"name": "test-windows-msvc-min",
+			"displayName": "Windows MinSizeRel Build (MSVC)",
+			"description": "Configures and builds the MSVC MinSizeRel build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-min"
+				}
+			]
+		},
+		{
+			"name": "test-windows-msvc-dbg-asan",
+			"displayName": "Windows Debug Build (MSVC + ASan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "test-windows-msvc-rdi-asan",
+			"displayName": "Windows RDI Build (MSVC + ASan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-dbg",
+			"displayName": "macOS Debug Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-rdi",
+			"displayName": "macOS RDI Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-rel",
+			"displayName": "macOS Release Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-min",
+			"displayName": "macOS MinSizeRel Build (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-dbg-asan",
+			"displayName": "macOS Debug Build (LLVM + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-rdi-asan",
+			"displayName": "macOS RDI Build (LLVM + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-dbg-tsan",
+			"displayName": "macOS Debug Build (LLVM + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-rdi-tsan",
+			"displayName": "macOS RDI Build (LLVM + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-dbg-ubsan",
+			"displayName": "macOS Debug Build (LLVM + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-llvm-rdi-ubsan",
+			"displayName": "macOS RDI Build (LLVM + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-dbg",
+			"displayName": "macOS Debug Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-rdi",
+			"displayName": "macOS RDI Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-rel",
+			"displayName": "macOS Release Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-min",
+			"displayName": "macOS MinSizeRel Build (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-dbg-asan",
+			"displayName": "macOS Debug Build (GCC + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-rdi-asan",
+			"displayName": "macOS RDI Build (GCC + ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-dbg-tsan",
+			"displayName": "macOS Debug Build (GCC + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-rdi-tsan",
+			"displayName": "macOS RDI Build (GCC + TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-dbg-ubsan",
+			"displayName": "macOS Debug Build (GCC + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "test-macos-gcc-rdi-ubsan",
+			"displayName": "macOS RDI Build (GCC + UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-dbg",
+			"displayName": "Full Linux Debug Build and Package (LLVM Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-rdi",
+			"displayName": "Full Linux RDI Build and Package (LLVM Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-rel",
+			"displayName": "Full Linux Release Build and Package (LLVM Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-min",
+			"displayName": "Full Linux MinSizeRel Build and Package (LLVM Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-dbg-asan",
+			"displayName": "Full Linux Debug Build and Package (LLVM ASan/LSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-rdi-asan",
+			"displayName": "Full Linux RDI Build and Package (LLVM ASan/LSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-rel-asan",
+			"displayName": "Full Linux Release Build and Package (LLVM ASan/LSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-dbg-tsan",
+			"displayName": "Full Linux Debug Build and Package (LLVM TSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-rdi-tsan",
+			"displayName": "Full Linux RDI Build and Package (LLVM TSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-dbg-ubsan",
+			"displayName": "Full Linux Debug Build and Package (LLVM UBSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-llvm-rdi-ubsan",
+			"displayName": "Full Linux RDI Build and Package (LLVM UBSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-dbg",
+			"displayName": "Full Linux Debug Build and Package (GCC Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-rdi",
+			"displayName": "Full Linux RDI Build and Package (GCC Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-rel",
+			"displayName": "Full Linux Release Build and Package (GCC Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-min",
+			"displayName": "Full Linux MinSizeRel Build and Package (GCC Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-dbg-asan",
+			"displayName": "Full Linux Debug Build and Package (GCC ASan/LSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-rdi-asan",
+			"displayName": "Full Linux RDI Build and Package (GCC ASan/LSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-rel-asan",
+			"displayName": "Full Linux Release Build and Package (GCC ASan/LSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-dbg-tsan",
+			"displayName": "Full Linux Debug Build and Package (GCC TSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-rdi-tsan",
+			"displayName": "Full Linux RDI Build and Package (GCC TSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-dbg-ubsan",
+			"displayName": "Full Linux Debug Build and Package (GCC UBSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-linux-gcc-rdi-ubsan",
+			"displayName": "Full Linux RDI Build and Package (GCC UBSan Archives)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "linux-gcc-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-dbg",
+			"displayName": "Full Debian Debug Build and Package (LLVM Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-rdi",
+			"displayName": "Full Debian RDI Build and Package (LLVM Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-rel",
+			"displayName": "Full Debian Release Build and Package (LLVM Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-min",
+			"displayName": "Full Debian MinSizeRel Build and Package (LLVM Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-dbg-asan",
+			"displayName": "Full Debian Debug Build and Package (LLVM ASan/LSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-rdi-asan",
+			"displayName": "Full Debian RDI Build and Package (LLVM ASan/LSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-rel-asan",
+			"displayName": "Full Debian Release Build and Package (LLVM ASan/LSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-dbg-tsan",
+			"displayName": "Full Debian Debug Build and Package (LLVM TSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-rdi-tsan",
+			"displayName": "Full Debian RDI Build and Package (LLVM TSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-dbg-ubsan",
+			"displayName": "Full Debian Debug Build and Package (LLVM UBSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-llvm-rdi-ubsan",
+			"displayName": "Full Debian RDI Build and Package (LLVM UBSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-dbg",
+			"displayName": "Full Debian Debug Build and Package (GCC Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-rdi",
+			"displayName": "Full Debian RDI Build and Package (GCC Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-rel",
+			"displayName": "Full Debian Release Build and Package (GCC Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-min",
+			"displayName": "Full Debian MinSizeRel Build and Package (GCC Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-dbg-asan",
+			"displayName": "Full Debian Debug Build and Package (GCC ASan/LSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-rdi-asan",
+			"displayName": "Full Debian RDI Build and Package (GCC ASan/LSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-rel-asan",
+			"displayName": "Full Debian Release Build and Package (GCC ASan/LSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-dbg-tsan",
+			"displayName": "Full Debian Debug Build and Package (GCC TSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-rdi-tsan",
+			"displayName": "Full Debian RDI Build and Package (GCC TSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-dbg-ubsan",
+			"displayName": "Full Debian Debug Build and Package (GCC UBSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-deb-gcc-rdi-ubsan",
+			"displayName": "Full Debian RDI Build and Package (GCC UBSan Debian)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "deb-gcc-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-dbg",
+			"displayName": "Full RPM Debug Build and Package (LLVM RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-rdi",
+			"displayName": "Full RPM RDI Build and Package (LLVM RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-rel",
+			"displayName": "Full RPM Release Build and Package (LLVM RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-min",
+			"displayName": "Full RPM MinSizeRel Build and Package (LLVM RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-dbg-asan",
+			"displayName": "Full RPM Debug Build and Package (LLVM ASan/LSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-rdi-asan",
+			"displayName": "Full RPM RDI Build and Package (LLVM ASan/LSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-rel-asan",
+			"displayName": "Full RPM Release Build and Package (LLVM ASan/LSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-dbg-tsan",
+			"displayName": "Full RPM Debug Build and Package (LLVM TSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-rdi-tsan",
+			"displayName": "Full RPM RDI Build and Package (LLVM TSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-dbg-ubsan",
+			"displayName": "Full RPM Debug Build and Package (LLVM UBSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-llvm-rdi-ubsan",
+			"displayName": "Full RPM RDI Build and Package (LLVM UBSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-dbg",
+			"displayName": "Full RPM Debug Build and Package (GCC RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-rdi",
+			"displayName": "Full RPM RDI Build and Package (GCC RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-rel",
+			"displayName": "Full RPM Release Build and Package (GCC RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-min",
+			"displayName": "Full RPM MinSizeRel Build and Package (GCC RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-dbg-asan",
+			"displayName": "Full RPM Debug Build and Package (GCC ASan/LSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-rdi-asan",
+			"displayName": "Full RPM RDI Build and Package (GCC ASan/LSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-rel-asan",
+			"displayName": "Full RPM Release Build and Package (GCC ASan/LSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-dbg-tsan",
+			"displayName": "Full RPM Debug Build and Package (GCC TSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-rdi-tsan",
+			"displayName": "Full RPM RDI Build and Package (GCC TSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-dbg-ubsan",
+			"displayName": "Full RPM Debug Build and Package (GCC UBSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-rpm-gcc-rdi-ubsan",
+			"displayName": "Full RPM RDI Build and Package (GCC UBSan RPM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "rpm-gcc-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-dbg",
+			"displayName": "Full Windows Debug Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-rdi",
+			"displayName": "Full Windows RDI Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-rel",
+			"displayName": "Full Windows Release Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-min",
+			"displayName": "Full Windows MinSizeRel Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-dbg-asan",
+			"displayName": "Full Windows Debug Build and Package (LLVM ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-rdi-asan",
+			"displayName": "Full Windows RDI Build and Package (LLVM ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-rel-asan",
+			"displayName": "Full Windows Release Build and Package (LLVM ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-dbg-tsan",
+			"displayName": "Full Windows Debug Build and Package (LLVM TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-rdi-tsan",
+			"displayName": "Full Windows RDI Build and Package (LLVM TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-dbg-ubsan",
+			"displayName": "Full Windows Debug Build and Package (LLVM UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-llvm-rdi-ubsan",
+			"displayName": "Full Windows RDI Build and Package (LLVM UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-dbg",
+			"displayName": "Full Windows Debug Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-rdi",
+			"displayName": "Full Windows RDI Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-rel",
+			"displayName": "Full Windows Release Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-min",
+			"displayName": "Full Windows MinSizeRel Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-dbg-asan",
+			"displayName": "Full Windows Debug Build and Package (GCC ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-rdi-asan",
+			"displayName": "Full Windows RDI Build and Package (GCC ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-rel-asan",
+			"displayName": "Full Windows Release Build and Package (GCC ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-dbg-tsan",
+			"displayName": "Full Windows Debug Build and Package (GCC TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-rdi-tsan",
+			"displayName": "Full Windows RDI Build and Package (GCC TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-dbg-ubsan",
+			"displayName": "Full Windows Debug Build and Package (GCC UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-gcc-rdi-ubsan",
+			"displayName": "Full Windows RDI Build and Package (GCC UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "windows-gcc-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-mingw-dbg",
+			"displayName": "Full Windows Debug Build and Package (MinGW)",
+			"description": "Configures, builds, and packages the MinGW debug build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "mingw-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-mingw-dbg"
+				},
+				{
+					"type": "package",
+					"name": "windows-mingw-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-windows-mingw-rdi",
+			"displayName": "Full Windows RDI Build and Package (MinGW)",
+			"description": "Configures, builds, and packages the MinGW RDI build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "mingw-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-mingw-rdi"
+				},
+				{
+					"type": "package",
+					"name": "windows-mingw-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-windows-mingw-rel",
+			"displayName": "Full Windows Release Build and Package (MinGW)",
+			"description": "Configures, builds, and packages the MinGW release build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "mingw-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-mingw-rel"
+				},
+				{
+					"type": "package",
+					"name": "windows-mingw-rel"
+				}
+			]
+		},
+		{
+			"name": "full-windows-mingw-min",
+			"displayName": "Full Windows MinSizeRel Build and Package (MinGW)",
+			"description": "Configures, builds, and packages the MinSizeRel build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "mingw-min"
+				},
+				{
+					"type": "build",
+					"name": "build-mingw-min"
+				},
+				{
+					"type": "package",
+					"name": "windows-mingw-min"
+				}
+			]
+		},
+		{
+			"name": "full-windows-msvc-dbg",
+			"displayName": "Full Windows Debug Build and Package (MSVC)",
+			"description": "Configures, builds, and packages the MSVC debug build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-dbg"
+				},
+				{
+					"type": "package",
+					"name": "windows-msvc-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-windows-msvc-rdi",
+			"displayName": "Full Windows RDI Build and Package (MSVC)",
+			"description": "Configures, builds, and packages the MSVC RDI build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-rdi"
+				},
+				{
+					"type": "package",
+					"name": "windows-msvc-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-windows-msvc-rel",
+			"displayName": "Full Windows Release Build and Package (MSVC)",
+			"description": "Configures, builds, and packages the MSVC release build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-rel"
+				},
+				{
+					"type": "package",
+					"name": "windows-msvc-rel"
+				}
+			]
+		},
+		{
+			"name": "full-windows-msvc-min",
+			"displayName": "Full Windows MinSizeRel Build and Package (MSVC)",
+			"description": "Configures, builds, and packages the MSVC MinSizeRel build for Windows.",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-min"
+				},
+				{
+					"type": "package",
+					"name": "windows-msvc-min"
+				}
+			]
+		},
+		{
+			"name": "full-windows-msvc-dbg-asan",
+			"displayName": "Full Windows Debug Build and Package (MSVC ASan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-msvc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-windows-msvc-rdi-asan",
+			"displayName": "Full Windows RDI Build and Package (MSVC ASan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "msvc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-msvc-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "windows-msvc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-dbg",
+			"displayName": "Full macOS Debug Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-rdi",
+			"displayName": "Full macOS RDI Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-rel",
+			"displayName": "Full macOS Release Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-rel"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-min",
+			"displayName": "Full macOS MinSizeRel Build and Package (LLVM)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-min"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-min"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-min"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-dbg-asan",
+			"displayName": "Full macOS Debug Build and Package (LLVM ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-rdi-asan",
+			"displayName": "Full macOS RDI Build and Package (LLVM ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-rel-asan",
+			"displayName": "Full macOS Release Build and Package (LLVM ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-dbg-tsan",
+			"displayName": "Full macOS Debug Build and Package (LLVM TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-rdi-tsan",
+			"displayName": "Full macOS RDI Build and Package (LLVM TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-dbg-ubsan",
+			"displayName": "Full macOS Debug Build and Package (LLVM UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-llvm-rdi-ubsan",
+			"displayName": "Full macOS RDI Build and Package (LLVM UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "llvm-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-llvm-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-llvm-rdi-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-dbg",
+			"displayName": "Full macOS Debug Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-dbg"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-rdi",
+			"displayName": "Full macOS RDI Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-rdi"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-rel",
+			"displayName": "Full macOS Release Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-rel"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-min",
+			"displayName": "Full macOS MinSizeRel Build and Package (GCC)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-min"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-min"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-min"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-dbg-asan",
+			"displayName": "Full macOS Debug Build and Package (GCC ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-asan"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-dbg-asan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-rdi-asan",
+			"displayName": "Full macOS RDI Build and Package (GCC ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-asan"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-rdi-asan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-rel-asan",
+			"displayName": "Full macOS Release Build and Package (GCC ASan/LSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rel-asan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rel-asan"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-rel-asan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-dbg-tsan",
+			"displayName": "Full macOS Debug Build and Package (GCC TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-tsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-dbg-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-rdi-tsan",
+			"displayName": "Full macOS RDI Build and Package (GCC TSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-tsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-tsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-rdi-tsan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-dbg-ubsan",
+			"displayName": "Full macOS Debug Build and Package (GCC UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-dbg-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-dbg-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-dbg-ubsan"
+				}
+			]
+		},
+		{
+			"name": "full-macos-gcc-rdi-ubsan",
+			"displayName": "Full macOS RDI Build and Package (GCC UBSan)",
+			"steps": [
+				{
+					"type": "configure",
+					"name": "gcc-rdi-ubsan"
+				},
+				{
+					"type": "build",
+					"name": "build-gcc-rdi-ubsan"
+				},
+				{
+					"type": "package",
+					"name": "macos-gcc-rdi-ubsan"
+				}
+			]
+		}
+	]
+}

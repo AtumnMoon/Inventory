@@ -1,0 +1,17 @@
+# Ignore cache and build files
+.cache/
+build/
+
+# Ignore user CMake config
+CMakeUserPresets.json
+
+# Ignore editor configurations
+.idea/
+.helix/
+.vscode/
+.zed/
+
+# Ignore runtime artifacts
+*.log
+*.csv
+*.exe
