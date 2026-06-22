@@ -75,6 +75,18 @@ void show_error(const std::string& message);
 void show_success(const std::string& message);
 
 /**
+ * @brief Render headers and rows as a bordered table.
+ * @param headers Column headers, in display order
+ * @param rows    Each row's cells, in the same column order as headers
+ * @note Column widths fit their content automatically (so a table never
+ *       prints wider than it needs to), but the whole table is capped
+ *       at 65 characters wide — columns shrink, and their cells get
+ *       truncated with "...", just enough to stay under that cap.
+ */
+void show_table(const std::vector<std::string>& headers,
+                const std::vector<std::vector<std::string>>& rows);
+
+/**
  * @brief Convert 'Food' to displayable string
  */
 std::string food_to_string(const Food& food);
@@ -129,7 +141,9 @@ void search_entry(Inventory& inventory);
 // ===== Inventory Methods =====
 
 /**
- * @brief Display the name and stocks of the product entries
+ * @brief Display each product's stock as a table: Product,
+ *        Current_Stock, Order_Amount (pending, not-yet-receipted
+ *        orders), and Stock_After_Ordering
  * @param inventory The inventory to view
  */
 void view_stocks(Inventory& inventory);
@@ -160,6 +174,12 @@ void load_inventory(Inventory& inventory);
 void create_order(Inventory& inventory);
 
 /**
- * @brief Generate the reciept of successful transaction(s)
+ * @brief Show the pending orders and their running total
+ */
+void view_orders(Inventory& inventory);
+
+/**
+ * @brief Show the pending orders, then — only if the user confirms —
+ *        clear them and log the receipt as generated
  */
 void generate_reciept(Inventory& inventory);

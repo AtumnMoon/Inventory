@@ -23,8 +23,9 @@ int main() {
         show_option("[5]: View Stocks");
         show_option("[6]: View Inventory");
         show_option("[7]: Create Order");
-        show_option("[8]: Generate Receipt");
-        show_option("[9]: Save Inventory");
+        show_option("[8]: View Orders");
+        show_option("[9]: Generate Receipt");
+        show_option("[10]: Save Inventory");
         show_option("[0]: Exit");
 
         const int choice = get_uint("Answer > ");
@@ -52,16 +53,19 @@ int main() {
                 create_order(inventory);
                 break;
             case 8:
-                generate_reciept(inventory);
+                view_orders(inventory);
                 break;
             case 9:
+                generate_reciept(inventory);
+                break;
+            case 10:
                 save_inventory(inventory);
                 break;
             case 0:
                 running = false;
                 break;
             default:
-                show_message(0, "Invalid option. Try again.");
+                show_error("Invalid option. Try again.");
                 break;
         }
     }
