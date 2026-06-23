@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -22,24 +23,250 @@ const std::string CSV_DELIMITER = ",";
 const std::string TITLE_COLOR = Color::Cyan + Color::Bold + Color::Highlight;
 const std::string QUESTION_COLOR = Color::Cyan + Color::Bold;
 
-// Helper functions for looking up indexes
+// The hard cap show_table is allowed to print a line at — no row, no
+// matter how much content it holds, may end up wider than this.
+const std::size_t MAX_TABLE_WIDTH = 65;
 
-int find_food_index(const Inventory& inventory, int id) {
-    for (std::size_t i = 0; i < inventory.foods.size(); ++i) {
-        if (inventory.foods[i].id == id) {
-            return static_cast<int>(i);
-        }
+// Cuts text down to fit a column. Adds "..." to mark the cut when
+// there's room for it, so it stays obvious something got hidden instead
+// of silently dropping characters.
+std::string fit_cell(const std::string& text, std::size_t width) {
+    if (text.size() <= width) {
+        return text;
     }
-    return -1;
+
+    if (width <= 3) {
+        return text.substr(0, width);
+    }
+
+    return text.substr(0, width - 3) + "...";
 }
 
-int find_beverage_index(const Inventory& inventory, int id) {
-    for (std::size_t i = 0; i < inventory.beverages.size(); ++i) {
-        if (inventory.beverages[i].id == id) {
-            return static_cast<int>(i);
+// Shrinks whichever column is currently widest, one character at a
+// time, until the whole row fits in max_width. Greedy, but a table only
+// ever has a handful of columns, so the loop stays cheap.
+std::vector<std::size_t> fit_column_widths(std::vector<std::size_t> widths,
+                                           std::size_t max_width) {
+    // Every column costs a leading "|" plus 2 padding spaces, and the
+    // row gets one extra trailing "|".
+    const std::size_t overhead = widths.size() * 3 + 1;
+
+    while (true) {
+        std::size_t total = overhead;
+        for (std::size_t width : widths) {
+            total += width;
+        }
+
+        if (total <= max_width) {
+            break;
+        }
+
+        std::size_t widest = 0;
+        for (std::size_t i = 1; i < widths.size(); ++i) {
+            if (widths[i] > widths[widest]) {
+                widest = i;
+            }
+        }
+
+        // Stop once a column is too small to stay readable
+        // the row may end up slightly over budget, but that beats a useless
+        // one.
+        if (widths[widest] <= 3) {
+            break;
+        }
+
+        widths[widest] -= 1;
+    }
+
+    return widths;
+}
+
+// Lays out one row as "| cell | cell | ...". std::format's width spec
+// ({:<{}}) does the left-align-and-pad in one call instead of manually
+// building padding strings. Hooray for std::format C++20's feature.
+std::string format_table_row(const std::vector<std::string>& cells,
+                             const std::vector<std::size_t>& widths) {
+    std::string line = "|";
+
+    for (std::size_t i = 0; i < widths.size(); ++i) {
+        const std::string cell = (i < cells.size()) ? cells[i] : "";
+        const std::string fitted = fit_cell(cell, widths[i]);
+        line += " " + std::format("{:<{}}", fitted, widths[i]) + " |";
+    }
+
+    return line;
+}
+
+// Helper functions for looking up indexes.
+// "Not found" is signaled by returning the vector's own size
+std::size_t find_food_index(const Inventory& inventory, int id) {
+    for (std::size_t i = 0; i < inventory.foods.size(); ++i) {
+        if (inventory.foods[i].id == id) {
+            return i;
         }
     }
-    return -1;
+    return inventory.foods.size();
+}
+
+std::size_t find_beverage_index(const Inventory& inventory, int id) {
+    for (std::size_t i = 0; i < inventory.beverages.size(); ++i) {
+        if (inventory.beverages[i].id == id) {
+            return i;
+        }
+    }
+    return inventory.beverages.size();
+}
+
+// Prints one ticket's pending order lines and returns their running
+// total. Shared by `view_orders` and `generate_reciept`
+int print_order_lines(const Inventory& inventory, const std::string& ticket) {
+    int total = 0;
+    const std::string item_color = Color::Green;
+
+    for (std::size_t i = 0; i < inventory.orders.size(); ++i) {
+        const Order& order = inventory.orders[i];
+        if (order.ticket != ticket) {
+            continue;
+        }
+
+        const std::string prefix = "[" + std::to_string(i + 1) + "] ";
+
+        const std::size_t food_index =
+            find_food_index(inventory, order.entry_id);
+        if (food_index != inventory.foods.size()) {
+            const FoodEntry& entry = inventory.foods[food_index];
+            const int subtotal = entry.product.base_price * order.amount;
+            total += subtotal;
+            show_message(2,
+                         prefix + entry.product.name + " x" +
+                             std::to_string(order.amount) + " = " +
+                             std::to_string(subtotal),
+                         item_color);
+            continue;
+        }
+
+        const std::size_t beverage_index =
+            find_beverage_index(inventory, order.entry_id);
+        if (beverage_index != inventory.beverages.size()) {
+            const BeverageEntry& entry = inventory.beverages[beverage_index];
+            const int subtotal = entry.product.base_price * order.amount;
+            total += subtotal;
+            show_message(2,
+                         prefix + entry.product.name + " x" +
+                             std::to_string(order.amount) + " = " +
+                             std::to_string(subtotal),
+                         item_color);
+        }
+    }
+
+    return total;
+}
+
+// True if at least one pending order belongs to this ticket. Needed
+// instead of just checking print_order_lines' total against 0, since
+// an order placed for 0 units (technically allowed today) would make
+// an empty-looking total even when a match exists.
+bool has_ticket_orders(const Inventory& inventory, const std::string& ticket) {
+    for (const auto& order : inventory.orders) {
+        if (order.ticket == ticket) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Shows one ticket's pending orders as a title, numbered lines, and a
+// running total — or a plain "nothing here" message if it has none.
+// Returns whether there was anything to show, so callers know whether
+// to continue into their own next step.
+bool show_ticket_orders(const Inventory& inventory, const std::string& ticket) {
+    if (!has_ticket_orders(inventory, ticket)) {
+        show_info("No pending orders for that ticket.");
+        return false;
+    }
+
+    show_title("Pending Orders — " + ticket);
+    const int total = print_order_lines(inventory, ticket);
+    show_message(0, "Total: " + std::to_string(total), Color::Magenta);
+    return true;
+}
+
+// Sums every pending (not-yet-receipted) order amount for one product.
+// Used by the stocks table, and by create_order/update_entry to make
+// sure stock changes never conflict with what's already reserved.
+int sum_pending_orders(const Inventory& inventory, int entry_id) {
+    int total = 0;
+    for (const auto& order : inventory.orders) {
+        if (order.entry_id == entry_id) {
+            total += order.amount;
+        }
+    }
+    return total;
+}
+
+// Builds one product's row for the stocks table: name, current stock,
+// how much of it sits in pending orders, and what stock will be once
+// those orders' receipt gets generated.
+std::vector<std::string> build_stock_row(const Inventory& inventory,
+                                         const std::string& name, int id,
+                                         int current_stock) {
+    const int order_amount = sum_pending_orders(inventory, id);
+    const int stock_after_ordering = current_stock - order_amount;
+
+    return std::vector<std::string>{name, std::to_string(current_stock),
+                                    std::to_string(order_amount),
+                                    std::to_string(stock_after_ordering)};
+}
+
+// Shows a stock-vs-reservation clash as a one-row breakdown table plus a
+// plain-language note on what to do instead. Used by create_order
+// (ordering more than is available, which always just gets rejected).
+void show_stock_clash(const std::vector<std::string>& headers,
+                      const std::vector<std::string>& values,
+                      const std::string& note) {
+    show_error("This would clash with orders already pending a receipt.");
+    show_table(headers, {values});
+    show_info(note);
+}
+
+// Cancels every pending order tied to one product — used when
+// update_entry or remove_entry proceeds despite the warning below.
+void remove_orders_for_entry(Inventory& inventory, int entry_id) {
+    std::vector<Order> kept;
+    for (const auto& order : inventory.orders) {
+        if (order.entry_id != entry_id) {
+            kept.push_back(order);
+        }
+    }
+    inventory.orders = kept;
+}
+
+// Warns, as loudly as a plain terminal allows (bold + reversed + red —
+// there's no real "bigger font" available here), that proceeding will
+// cancel every pending order for one product. Shared by update_entry
+// (shrinking stock too far) and remove_entry (archiving the product).
+void warn_order_cancellation(const Inventory& inventory,
+                             const std::string& name, int entry_id,
+                             int reserved) {
+    const std::string warning_color =
+        std::string(Color::Red) + Color::Bold + Color::Highlight;
+    const std::string border(61, '!');
+
+    show_message(0, "");
+    show_message(0, border, warning_color);
+    show_message(0,
+                 "  THIS WILL CANCEL " + std::to_string(reserved) +
+                     " PENDING UNIT(S) OF \"" + name + "\"",
+                 warning_color);
+    for (const auto& order : inventory.orders) {
+        if (order.entry_id == entry_id) {
+            show_message(4,
+                         "- " + std::to_string(order.amount) +
+                             " unit(s) pending (ticket: " + order.ticket + ")",
+                         warning_color);
+        }
+    }
+    show_message(0, border, warning_color);
 }
 
 }  // namespace
@@ -86,6 +313,47 @@ void show_error(const std::string& message) {
 
 void show_success(const std::string& message) {
     show_message(0, message, Color::Green);
+}
+
+void show_table(const std::vector<std::string>& headers,
+                const std::vector<std::vector<std::string>>& rows) {
+    if (headers.empty()) {
+        return;
+    }
+
+    // Every column starts as wide as its header, then grows to fit the
+    // longest cell beneath it — this is what makes the table "dynamic":
+    // it never ends up wider than its content actually needs.
+    std::vector<std::size_t> widths;
+    for (const auto& header : headers) {
+        widths.push_back(header.size());
+    }
+    for (const auto& row : rows) {
+        for (std::size_t i = 0; i < row.size() && i < widths.size(); ++i) {
+            if (row[i].size() > widths[i]) {
+                widths[i] = row[i].size();
+            }
+        }
+    }
+
+    // Only shrinks (and starts truncating) once the natural size would
+    // have overflowed the 65-character cap.
+    widths = fit_column_widths(widths, MAX_TABLE_WIDTH);
+
+    // The "+---+---+" border line, reused for the top, the line under
+    // the header, and the bottom.
+    std::string border = "+";
+    for (std::size_t width : widths) {
+        border += std::string(width + 2, '-') + "+";
+    }
+
+    show_message(0, border);
+    show_message(0, format_table_row(headers, widths));
+    show_message(0, border);
+    for (const auto& row : rows) {
+        show_message(0, format_table_row(row, widths));
+    }
+    show_message(0, border);
 }
 
 std::string food_to_string(const Food& food) {
@@ -222,20 +490,41 @@ void remove_entry(Inventory& inventory) {
     // They chose food, run this
     if (choice == 1) {
         // Find the index of the food
-        const int index = find_food_index(inventory, id);
-        if (index == -1 || inventory.foods.at(index).is_archived) {
+        const std::size_t index = find_food_index(inventory, id);
+        if (index == inventory.foods.size() ||
+            inventory.foods[index].is_archived) {
             show_error("No matching food entry found.");
             return;
         }
 
-        FoodEntry& entry = inventory.foods.at(index);
+        FoodEntry& entry = inventory.foods[index];
+        const int reserved = sum_pending_orders(inventory, entry.id);
+
+        // Only warn when there's actually something at stake.
+        if (reserved > 0) {
+            warn_order_cancellation(inventory, entry.product.name, entry.id,
+                                    reserved);
+        }
 
         // Ask for confirmation
-        const bool confirmation =
-            prompt_yes_no("Remove \"" + entry.product.name + "\"? (Y/n): ");
+        const std::string prompt =
+            (reserved > 0)
+                ? ("Remove \"" + entry.product.name + "\" and cancel its " +
+                   std::to_string(reserved) + " pending unit(s)? (Y/n): ")
+                : ("Remove \"" + entry.product.name + "\"? (Y/n): ");
+        const bool confirmation = prompt_yes_no(prompt);
         if (confirmation) {
             // Then delete it
             entry.is_archived = true;
+
+            if (reserved > 0) {
+                remove_orders_for_entry(inventory, entry.id);
+                save_log(create_log("SUCCESS", "id=" + std::to_string(entry.id),
+                                    "Canceled " + std::to_string(reserved) +
+                                        " pending unit(s) for " +
+                                        entry.product.name +
+                                        " due to removal."));
+            }
 
             const std::string component = "id=" + std::to_string(entry.id);
             const std::string message =
@@ -244,20 +533,40 @@ void remove_entry(Inventory& inventory) {
         }
     } else {
         // They chose beverage, find the index of beverage
-        const int index = find_beverage_index(inventory, id);
-        if (index == -1 || inventory.beverages.at(index).is_archived) {
+        const std::size_t index = find_beverage_index(inventory, id);
+        if (index == inventory.beverages.size() ||
+            inventory.beverages[index].is_archived) {
             show_error("No matching beverage entry found.");
             return;
         }
 
-        BeverageEntry& entry = inventory.beverages.at(index);
+        BeverageEntry& entry = inventory.beverages[index];
+        const int reserved = sum_pending_orders(inventory, entry.id);
+
+        if (reserved > 0) {
+            warn_order_cancellation(inventory, entry.product.name, entry.id,
+                                    reserved);
+        }
 
         // Ask for confirmation
-        const bool confirmation =
-            prompt_yes_no("Remove \"" + entry.product.name + "\"? (Y/n): ");
+        const std::string prompt =
+            (reserved > 0)
+                ? ("Remove \"" + entry.product.name + "\" and cancel its " +
+                   std::to_string(reserved) + " pending unit(s)? (Y/n): ")
+                : ("Remove \"" + entry.product.name + "\"? (Y/n): ");
+        const bool confirmation = prompt_yes_no(prompt);
         if (confirmation) {
             // Then delete it
             entry.is_archived = true;
+
+            if (reserved > 0) {
+                remove_orders_for_entry(inventory, entry.id);
+                save_log(create_log("SUCCESS", "id=" + std::to_string(entry.id),
+                                    "Canceled " + std::to_string(reserved) +
+                                        " pending unit(s) for " +
+                                        entry.product.name +
+                                        " due to removal."));
+            }
 
             const std::string component = "id=" + std::to_string(entry.id);
             const std::string message =
@@ -281,49 +590,113 @@ void update_entry(Inventory& inventory) {
     const int id = get_uint("Entry id: ");
 
     if (choice == 1) {
-        const int index = find_food_index(inventory, id);
-        if (index == -1 ||
-            inventory.foods[static_cast<std::size_t>(index)].is_archived) {
+        const std::size_t index = find_food_index(inventory, id);
+        if (index == inventory.foods.size() ||
+            inventory.foods[index].is_archived) {
             show_error("No matching food entry found.");
             return;
         }
 
-        FoodEntry& entry = inventory.foods[static_cast<std::size_t>(index)];
+        FoodEntry& entry = inventory.foods[index];
+        const int reserved = sum_pending_orders(inventory, entry.id);
 
-        show_message(0, "Leave blank to keep the current value.");
+        show_info("Leave blank to keep the current value.");
         entry.product.name = get_string_or_skip(
             "Name [" + entry.product.name + "]: ", entry.product.name);
         entry.product.base_price = get_uint_or_skip(
             "Price [" + std::to_string(entry.product.base_price) + "]: ",
             entry.product.base_price);
-        entry.current_stock = get_uint_or_skip(
+
+        // Stock gets checked on its own: name/price above always apply
+        // regardless of what happens here.
+        const int new_stock = get_uint_or_skip(
             "Stock [" + std::to_string(entry.current_stock) + "]: ",
             entry.current_stock);
+        if (new_stock < reserved) {
+            show_table({"Requested_Stock", "Reserved", "Shortfall"},
+                       {{std::to_string(new_stock), std::to_string(reserved),
+                         std::to_string(reserved - new_stock)}});
+            warn_order_cancellation(inventory, entry.product.name, entry.id,
+                                    reserved);
+
+            const bool stock_confirmation =
+                prompt_yes_no("Set stock to " + std::to_string(new_stock) +
+                              " and cancel those pending orders? (Y/n): ");
+            if (stock_confirmation) {
+                entry.current_stock = new_stock;
+                remove_orders_for_entry(inventory, entry.id);
+
+                save_log(create_log(
+                    "SUCCESS", "id=" + std::to_string(entry.id),
+                    "Lowered stock to " + std::to_string(new_stock) +
+                        " and canceled " + std::to_string(reserved) +
+                        " pending unit(s) for " + entry.product.name + "."));
+                show_success(
+                    "Stock updated; the affected pending orders were "
+                    "canceled.");
+            } else {
+                show_info("Stock left at " +
+                          std::to_string(entry.current_stock) + ".");
+            }
+        } else {
+            entry.current_stock = new_stock;
+        }
 
         const std::string component = "id=" + std::to_string(entry.id);
         const std::string message =
             "Updated " + entry.product.name + " in food inventory!";
         save_log(create_log("SUCCESS", component, message));
     } else {
-        const int index = find_beverage_index(inventory, id);
-        if (index == -1 ||
-            inventory.beverages[static_cast<std::size_t>(index)].is_archived) {
+        const std::size_t index = find_beverage_index(inventory, id);
+        if (index == inventory.beverages.size() ||
+            inventory.beverages[index].is_archived) {
             show_error("No matching beverage entry found.");
             return;
         }
 
-        BeverageEntry& entry =
-            inventory.beverages[static_cast<std::size_t>(index)];
+        BeverageEntry& entry = inventory.beverages[index];
+        const int reserved = sum_pending_orders(inventory, entry.id);
 
-        show_message(0, "Leave blank to keep the current value.");
+        show_info("Leave blank to keep the current value.");
         entry.product.name = get_string_or_skip(
             "Name [" + entry.product.name + "]: ", entry.product.name);
         entry.product.base_price = get_uint_or_skip(
             "Price [" + std::to_string(entry.product.base_price) + "]: ",
             entry.product.base_price);
-        entry.current_stock = get_uint_or_skip(
+
+        // Same reasoning as the food branch above.
+        const int new_stock = get_uint_or_skip(
             "Stock [" + std::to_string(entry.current_stock) + "]: ",
             entry.current_stock);
+        if (new_stock < reserved) {
+            show_table({"Requested_Stock", "Reserved", "Shortfall"},
+                       {{std::to_string(new_stock), std::to_string(reserved),
+                         std::to_string(reserved - new_stock)}});
+            warn_order_cancellation(inventory, entry.product.name, entry.id,
+                                    reserved);
+
+            const bool stock_confirmation =
+                prompt_yes_no("Set stock to " + std::to_string(new_stock) +
+                              " and cancel those pending orders? (Y/n): ");
+            if (stock_confirmation) {
+                entry.current_stock = new_stock;
+                remove_orders_for_entry(inventory, entry.id);
+
+                save_log(create_log(
+                    "SUCCESS", "id=" + std::to_string(entry.id),
+                    "Lowered stock to " + std::to_string(new_stock) +
+                        " and canceled " + std::to_string(reserved) +
+                        " pending unit(s) for " + entry.product.name + "."));
+                show_success(
+                    "Stock updated; the affected pending orders were "
+                    "canceled.");
+            } else {
+                show_info("Stock left at " +
+                          std::to_string(entry.current_stock) + ".");
+            }
+        } else {
+            entry.current_stock = new_stock;
+        }
 
         const std::string component = "id=" + std::to_string(entry.id);
         const std::string message =
@@ -346,20 +719,19 @@ void search_entry(Inventory& inventory) {
     const int id = get_uint("Entry id: ");
 
     if (choice == 1) {
-        const int index = find_food_index(inventory, id);
-        if (index == -1) {
+        const std::size_t index = find_food_index(inventory, id);
+        if (index == inventory.foods.size()) {
             show_error("No matching food entry found.");
             return;
         }
-        display_food_entry(inventory.foods[static_cast<std::size_t>(index)]);
+        display_food_entry(inventory.foods[index]);
     } else {
-        const int index = find_beverage_index(inventory, id);
-        if (index == -1) {
+        const std::size_t index = find_beverage_index(inventory, id);
+        if (index == inventory.beverages.size()) {
             show_error("No matching beverage entry found.");
             return;
         }
-        display_beverage_entry(
-            inventory.beverages[static_cast<std::size_t>(index)]);
+        display_beverage_entry(inventory.beverages[index]);
     }
 }
 
@@ -368,31 +740,47 @@ void search_entry(Inventory& inventory) {
 void view_stocks(Inventory& inventory) {
     show_title("Stocks");
 
-    const std::string sub_title_color = Color::Yellow + Color::Bold;
-    const std::string content_color = Color::Magenta;
+    const std::string sub_title_color =
+        std::string(Color::Yellow) + Color::Bold;
+    const std::vector<std::string> headers = {
+        "Product", "Current_Stock", "Order_Amount", "Stock_After_Ordering"};
 
-    show_message(2, "Foods", sub_title_color);
+    // Collect food rows first so we know whether there's anything to
+    // render before deciding between a table and an empty-state message.
+    std::vector<std::vector<std::string>> food_rows;
     for (const auto& entry : inventory.foods) {
         // Skip "deleted" foods
         if (entry.is_archived) {
             continue;
         }
-        show_message(
-            4, entry.product.name + ": " + std::to_string(entry.current_stock),
-            content_color);
+        food_rows.push_back(build_stock_row(inventory, entry.product.name,
+                                            entry.id, entry.current_stock));
     }
 
-    std::cout << '\n';  // New line
+    show_message(2, "Foods", sub_title_color);
+    if (food_rows.empty()) {
+        show_info("No foods in stock.");
+    } else {
+        show_table(headers, food_rows);
+    }
 
-    show_message(2, "Beverages", sub_title_color);
+    show_message(0, "");  // Blank line between sections
+
+    std::vector<std::vector<std::string>> beverage_rows;
     for (const auto& entry : inventory.beverages) {
         // Skip "deleted" beverages
         if (entry.is_archived) {
             continue;
         }
-        show_message(
-            4, entry.product.name + ": " + std::to_string(entry.current_stock),
-            content_color);
+        beverage_rows.push_back(build_stock_row(inventory, entry.product.name,
+                                                entry.id, entry.current_stock));
+    }
+
+    show_message(2, "Beverages", sub_title_color);
+    if (beverage_rows.empty()) {
+        show_info("No beverages in stock.");
+    } else {
+        show_table(headers, beverage_rows);
     }
 }
 
@@ -414,7 +802,7 @@ void save_inventory(Inventory& inventory) {
     // Foods -> foods.csv
     std::ofstream foods_file(FOODS_FILE);
     if (!foods_file.is_open()) {
-        show_message(0, "Failed to open \"" + FOODS_FILE + "\" for writing.");
+        show_error("Failed to open \"" + FOODS_FILE + "\" for writing.");
     } else {
         foods_file << "id,name,base_price,current_stock,is_archived\n";
         for (const auto& entry : inventory.foods) {
@@ -429,8 +817,7 @@ void save_inventory(Inventory& inventory) {
     // Beverages -> beverages.csv
     std::ofstream beverages_file(BEVERAGES_FILE);
     if (!beverages_file.is_open()) {
-        show_message(0,
-                     "Failed to open \"" + BEVERAGES_FILE + "\" for writing.");
+        show_error("Failed to open \"" + BEVERAGES_FILE + "\" for writing.");
     } else {
         beverages_file << "id,name,base_price,current_stock,is_archived\n";
         for (const auto& entry : inventory.beverages) {
@@ -446,19 +833,19 @@ void save_inventory(Inventory& inventory) {
     // Orders -> orders.csv
     std::ofstream orders_file(ORDERS_FILE);
     if (!orders_file.is_open()) {
-        show_message(0, "Failed to open \"" + ORDERS_FILE + "\" for writing.");
+        show_error("Failed to open \"" + ORDERS_FILE + "\" for writing.");
     } else {
-        orders_file << "entry_id,amount\n";
+        orders_file << "ticket,entry_id,amount\n";
         for (const auto& order : inventory.orders) {
-            orders_file << order.entry_id << CSV_DELIMITER << order.amount
-                        << '\n';
+            orders_file << order.ticket << CSV_DELIMITER << order.entry_id
+                        << CSV_DELIMITER << order.amount << '\n';
         }
         orders_file.close();
     }
 
     save_log(create_log("SUCCESS", "save_inventory",
                         "Inventory saved to CSV files."));
-    show_message(0, "Inventory saved.");
+    show_success("Inventory saved.");
 }
 
 void load_inventory(Inventory& inventory) {
@@ -542,13 +929,14 @@ void load_inventory(Inventory& inventory) {
             }
 
             const std::vector<std::string> fields = split(line, CSV_DELIMITER);
-            if (fields.size() < 2) {
+            if (fields.size() < 3) {
                 continue;
             }
 
             Order order;
-            order.entry_id = std::stoi(fields[0]);
-            order.amount = std::stoi(fields[1]);
+            order.ticket = fields[0];
+            order.entry_id = std::stoi(fields[1]);
+            order.amount = std::stoi(fields[2]);
 
             inventory.orders.push_back(order);
         }
@@ -564,6 +952,8 @@ void load_inventory(Inventory& inventory) {
 // ===== Order Methods =====
 
 void create_order(Inventory& inventory) {
+    const std::string ticket = get_string("Customer/Ticket: ");
+
     show_question("Order which product type?");
     show_option("[1]: Food");
     show_option("[2]: Beverage");
@@ -577,101 +967,212 @@ void create_order(Inventory& inventory) {
     const int id = get_uint("Entry id: ");
 
     if (choice == 1) {
-        const int index = find_food_index(inventory, id);
-        if (index == -1 ||
-            inventory.foods[static_cast<std::size_t>(index)].is_archived) {
+        const std::size_t index = find_food_index(inventory, id);
+        if (index == inventory.foods.size() ||
+            inventory.foods[index].is_archived) {
             show_error("No matching food entry found.");
             return;
         }
 
-        FoodEntry& entry = inventory.foods[static_cast<std::size_t>(index)];
+        FoodEntry& entry = inventory.foods[index];
+        const int reserved = sum_pending_orders(inventory, entry.id);
+        const int available = entry.current_stock - reserved;
+
+        // Only mention this when it's actually relevant — no point
+        // adding noise for products with nothing pending against them.
+        if (reserved > 0) {
+            show_info(std::to_string(reserved) +
+                      " already reserved by pending orders — " +
+                      std::to_string(available) + " available to order.");
+        }
+
         const int amount = get_uint("Amount: ");
 
-        if (amount > entry.current_stock) {
-            show_error("Not enough stock available.");
+        if (amount > available) {
+            const int suggested = (available > 0) ? available : 0;
+            show_stock_clash(
+                {"Current_Stock", "Reserved", "Available", "Requested"},
+                {std::to_string(entry.current_stock), std::to_string(reserved),
+                 std::to_string(available), std::to_string(amount)},
+                "You can order up to " + std::to_string(suggested) +
+                    " right now, or wait until the pending orders are "
+                    "receipted.");
             return;
         }
 
-        entry.current_stock -= amount;
-        inventory.orders.push_back(Order{entry.id, amount});
+        // Stock isn't touched yet — this just reserves the amount.
+        // The actual deduction happens once generate_reciept is
+        // confirmed, so two pending orders can never both claim more
+        // than what's really on the shelf.
+        inventory.orders.push_back(Order{ticket, entry.id, amount});
 
         const std::string component = "id=" + std::to_string(entry.id);
         const std::string message = "Ordered " + std::to_string(amount) +
-                                    " of " + entry.product.name + ".";
+                                    " of " + entry.product.name +
+                                    " for ticket \"" + ticket + "\".";
         save_log(create_log("SUCCESS", component, message));
         show_success("Order placed.");
     } else {
-        const int index = find_beverage_index(inventory, id);
-        if (index == -1 ||
-            inventory.beverages[static_cast<std::size_t>(index)].is_archived) {
+        const std::size_t index = find_beverage_index(inventory, id);
+        if (index == inventory.beverages.size() ||
+            inventory.beverages[index].is_archived) {
             show_error("No matching beverage entry found.");
             return;
         }
 
-        BeverageEntry& entry =
-            inventory.beverages[static_cast<std::size_t>(index)];
+        BeverageEntry& entry = inventory.beverages[index];
+        const int reserved = sum_pending_orders(inventory, entry.id);
+        const int available = entry.current_stock - reserved;
+
+        if (reserved > 0) {
+            show_info(std::to_string(reserved) +
+                      " already reserved by pending orders — " +
+                      std::to_string(available) + " available to order.");
+        }
+
         const int amount = get_uint("Amount: ");
 
-        if (amount > entry.current_stock) {
-            show_error("Not enough stock available.");
+        if (amount > available) {
+            const int suggested = (available > 0) ? available : 0;
+            show_stock_clash(
+                {"Current_Stock", "Reserved", "Available", "Requested"},
+                {std::to_string(entry.current_stock), std::to_string(reserved),
+                 std::to_string(available), std::to_string(amount)},
+                "You can order up to " + std::to_string(suggested) +
+                    " right now, or wait until the pending orders are "
+                    "receipted.");
             return;
         }
 
-        entry.current_stock -= amount;
-        inventory.orders.push_back(Order{entry.id, amount});
+        inventory.orders.push_back(Order{ticket, entry.id, amount});
 
         const std::string component = "id=" + std::to_string(entry.id);
         const std::string message = "Ordered " + std::to_string(amount) +
-                                    " of " + entry.product.name + ".";
+                                    " of " + entry.product.name +
+                                    " for ticket \"" + ticket + "\".";
         save_log(create_log("SUCCESS", component, message));
         show_success("Order placed.");
     }
 }
 
-void generate_reciept(Inventory& inventory) {
-    if (inventory.orders.empty()) {
-        show_message(0, "No orders to generate a receipt for.");
+void view_orders(Inventory& inventory) {
+    const std::string ticket = get_string("Customer/Ticket: ");
+    show_ticket_orders(inventory, ticket);
+}
+
+void remove_order(Inventory& inventory) {
+    const std::string ticket = get_string("Customer/Ticket: ");
+
+    // Same numbered listing the receipt preview uses, so the number
+    // typed below always matches what's on screen right now.
+    if (!show_ticket_orders(inventory, ticket)) {
         return;
     }
 
-    show_title("Receipt");
+    const int choice =
+        get_uint("Which order number do you want to remove? (0 to cancel): ");
+    if (choice <= 0 ||
+        static_cast<std::size_t>(choice) > inventory.orders.size()) {
+        return;
+    }
 
-    int total = 0;
-    const std::string item_color = Color::Green;
-    const std::string total_color = Color::Magenta;
+    const std::size_t index = static_cast<std::size_t>(choice) - 1;
 
-    for (const auto& order : inventory.orders) {
-        const int food_index = find_food_index(inventory, order.entry_id);
-        if (food_index != -1) {
-            const FoodEntry& entry =
-                inventory.foods[static_cast<std::size_t>(food_index)];
-            const int subtotal = entry.product.base_price * order.amount;
-            total += subtotal;
-            show_message(2,
-                         entry.product.name + " x" +
-                             std::to_string(order.amount) + " = " +
-                             std::to_string(subtotal),
-                         item_color);
-            continue;
-        }
+    // The number shown only ever covered this ticket's orders, but
+    // someone could still type an arbitrary number so we double
+    // check it's actually theirs before touching anything.
+    if (inventory.orders[index].ticket != ticket) {
+        show_error("That order number doesn't belong to this ticket.");
+        return;
+    }
 
-        const int beverage_index =
+    const Order order = inventory.orders[index];
+
+    // Look up a display name for the confirmation prompt and falls back
+    // to a generic label in the unlikely case neither list has it.
+    std::string product_name = "this product";
+    const std::size_t food_index = find_food_index(inventory, order.entry_id);
+    if (food_index != inventory.foods.size()) {
+        product_name = inventory.foods[food_index].product.name;
+    } else {
+        const std::size_t beverage_index =
             find_beverage_index(inventory, order.entry_id);
-        if (beverage_index != -1) {
-            const BeverageEntry& entry =
-                inventory.beverages[static_cast<std::size_t>(beverage_index)];
-            const int subtotal = entry.product.base_price * order.amount;
-            total += subtotal;
-            show_message(2,
-                         entry.product.name + " x" +
-                             std::to_string(order.amount) + " = " +
-                             std::to_string(subtotal),
-                         item_color);
+        if (beverage_index != inventory.beverages.size()) {
+            product_name = inventory.beverages[beverage_index].product.name;
         }
     }
 
-    show_message(0, "Total: " + std::to_string(total), total_color);
+    const bool confirmation = prompt_yes_no(
+        "Remove order [" + std::to_string(choice) + "] " + product_name + " x" +
+        std::to_string(order.amount) + "? (Y/n): ");
+    if (!confirmation) {
+        return;
+    }
 
-    inventory.orders.clear();
-    save_log(create_log("SUCCESS", "generate_reciept", "Receipt generated."));
+    inventory.orders.erase(
+        inventory.orders.begin() +
+        static_cast<std::vector<Order>::difference_type>(index));
+
+    save_log(create_log("SUCCESS", "id=" + std::to_string(order.entry_id),
+                        "Removed pending order for " + product_name + " (x" +
+                            std::to_string(order.amount) + ") from ticket \"" +
+                            ticket + "\"."));
+    show_success("Order removed.");
+}
+
+void generate_reciept(Inventory& inventory) {
+    const std::string ticket = get_string("Customer/Ticket: ");
+
+    // Show what's pending first
+    if (!show_ticket_orders(inventory, ticket)) {
+        return;
+    }
+
+    const bool confirmation =
+        prompt_yes_no("Generate receipt for these orders? (Y/n): ");
+    if (!confirmation) {
+        return;
+    }
+
+    // Orders belonging to other tickets are copied and "kept" as-is.
+    // Only this ticket's orders get deducted and dropped from the list.
+    // We don't validate this since it's already validated in
+    // `create_order` and `update_entry`
+    std::vector<Order> kept;
+    for (const auto& order : inventory.orders) {
+        if (order.ticket != ticket) {
+            kept.push_back(order);
+            continue;
+        }
+
+        const std::size_t food_index =
+            find_food_index(inventory, order.entry_id);
+        if (food_index != inventory.foods.size()) {
+            FoodEntry& entry = inventory.foods[food_index];
+            entry.current_stock -= order.amount;
+
+            const std::string component = "id=" + std::to_string(entry.id);
+            save_log(create_log("SUCCESS", component,
+                                "Deducted " + std::to_string(order.amount) +
+                                    " from " + entry.product.name + " stock."));
+            continue;
+        }
+
+        const std::size_t beverage_index =
+            find_beverage_index(inventory, order.entry_id);
+        if (beverage_index != inventory.beverages.size()) {
+            BeverageEntry& entry = inventory.beverages[beverage_index];
+            entry.current_stock -= order.amount;
+
+            const std::string component = "id=" + std::to_string(entry.id);
+            save_log(create_log("SUCCESS", component,
+                                "Deducted " + std::to_string(order.amount) +
+                                    " from " + entry.product.name + " stock."));
+        }
+    }
+
+    inventory.orders = kept;
+    save_log(create_log("SUCCESS", "generate_reciept",
+                        "Receipt generated for ticket \"" + ticket + "\"."));
+    show_success("Receipt generated.");
 }

@@ -43,6 +43,8 @@ struct BeverageEntry {
  * @brief Represents a single line of a transaction.
  */
 struct Order {
+    std::string
+        ticket;    /// @brief Customer name or ticket grouping related orders
     int entry_id;  /// @brief What product they ordered? (food or beverage id)
     int amount;    /// @brief How much they ordered?
 };
@@ -73,6 +75,18 @@ void show_option(const std::string& option);
 void show_info(const std::string& message);
 void show_error(const std::string& message);
 void show_success(const std::string& message);
+
+/**
+ * @brief Render headers and rows as a bordered table.
+ * @param headers Column headers, in display order
+ * @param rows    Each row's cells, in the same column order as headers
+ * @note Column widths fit their content automatically (so a table never
+ *       prints wider than it needs to), but the whole table is capped
+ *       at 65 characters wide — columns shrink, and their cells get
+ *       truncated with "...", just enough to stay under that cap.
+ */
+void show_table(const std::vector<std::string>& headers,
+                const std::vector<std::vector<std::string>>& rows);
 
 /**
  * @brief Convert 'Food' to displayable string
@@ -109,13 +123,18 @@ int generate_id(Inventory& inventory);
 void create_entry(Inventory& inventory);
 
 /**
- * @brief Soft-delete an entry from the inventory (sets is_archived)
+ * @brief Soft-delete an entry from the inventory (sets is_archived). If
+ *        it has pending orders, the user is warned that removing it
+ *        will cancel them, and only proceeds if they confirm
  * @param inventory The inventory to remove from
  */
 void remove_entry(Inventory& inventory);
 
 /**
- * @brief Update an entry in the inventory
+ * @brief Update an entry in the inventory. Name and price always apply.
+ *        If the new stock would drop below what's already reserved by
+ *        pending orders, the user is warned and, only if they confirm,
+ *        those pending orders get canceled
  * @param inventory The inventory with the id
  */
 void update_entry(Inventory& inventory);
@@ -129,7 +148,9 @@ void search_entry(Inventory& inventory);
 // ===== Inventory Methods =====
 
 /**
- * @brief Display the name and stocks of the product entries
+ * @brief Display each product's stock as a table: Product,
+ *        Current_Stock, Order_Amount (pending, not-yet-receipted
+ *        orders), and Stock_After_Ordering
  * @param inventory The inventory to view
  */
 void view_stocks(Inventory& inventory);
@@ -155,11 +176,30 @@ void load_inventory(Inventory& inventory);
 // ===== Order Methods =====
 
 /**
- * @brief Order a new product from inventory
+ * @brief Reserve an amount of a product as a pending order under a
+ *        customer/ticket name (asked first). Stock isn't deducted yet
+ *        that happens when generate_reciept is confirmed
  */
 void create_order(Inventory& inventory);
 
 /**
- * @brief Generate the reciept of successful transaction(s)
+ * @brief Ask for a customer/ticket first, then show only that ticket's
+ *        pending orders and their running total
+ */
+void view_orders(Inventory& inventory);
+
+/**
+ * @brief Ask for a customer/ticket first, show only that ticket's
+ *        pending orders, then cancel one of them by its listed number.
+ *        Refuses if the chosen number doesn't belong to that ticket
+ */
+void remove_order(Inventory& inventory);
+
+/**
+ * @brief Ask for a customer/ticket first, show only that ticket's
+ *        pending orders, then only if the user confirms, deduct
+ *        their stock, remove just that ticket's orders, and log the
+ *        receipt as generated. Other tickets' pending orders are
+ *        untouched
  */
 void generate_reciept(Inventory& inventory);
