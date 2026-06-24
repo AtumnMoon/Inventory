@@ -4,6 +4,7 @@
 #include "utils.hpp"
 
 int main() {
+    // Create and populate the inventory using the content from save file
     Inventory inventory;
     load_inventory(inventory);
 
@@ -11,35 +12,32 @@ int main() {
 
     while (running) {
         std::cout << '\n'
-                  << "+---------------------------+\n"
-                  << "+    Inventory System <3    +\n"
-                  << "+---------------------------+\n";
+                << "+---------------------------+\n"
+                << "+    Inventory System <3    +\n"
+                << "+---------------------------+\n";
 
         show_question("What do you want to do?");
-        show_option("[1]: Manage Entries");
+        show_option("[1]: Manage Products");
         show_option("[2]: Manage Orders");
         show_option("[3]: View Stocks");
         show_option("[4]: View Inventory");
         show_option("[5]: Save Inventory");
         show_option("[0]: Exit");
 
-        const int choice = get_uint("Answer > ");
-
-        switch (choice) {
+        switch (get_uint("Answer > ")) {
             case 1: {
                 // Entry-related actions, grouped behind their own
                 // sub menu so the top-level menu stays short.
                 bool in_submenu = true;
                 while (in_submenu) {
-                    show_title("Manage Entries");
-                    show_option("[1]: Create Entry");
-                    show_option("[2]: Remove Entry");
-                    show_option("[3]: Update Entry");
-                    show_option("[4]: Search Entry");
+                    show_title("Manage Products");
+                    show_option("[1]: Create Products");
+                    show_option("[2]: Remove Products");
+                    show_option("[3]: Update Products");
+                    show_option("[4]: Search Products");
                     show_option("[0]: Back");
 
-                    const int sub_choice = get_uint("Answer > ");
-                    switch (sub_choice) {
+                    switch (get_uint("Answer > ")) {
                         case 1:
                             create_entry(inventory);
                             break;
@@ -73,8 +71,7 @@ int main() {
                     show_option("[4]: Generate Receipt");
                     show_option("[0]: Back");
 
-                    const int sub_choice = get_uint("Answer > ");
-                    switch (sub_choice) {
+                    switch (get_uint("Answer > ")) {
                         case 1:
                             create_order(inventory);
                             break;

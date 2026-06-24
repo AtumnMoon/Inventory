@@ -12,6 +12,13 @@
 void trim(std::string& s);
 
 /**
+ * @brief Return a lowercase copy of a string
+ * @param s The string to convert
+ * @return Lowercase copy of s
+ */
+std::string to_lower(std::string s);
+
+/**
  * @brief Split a string into tokens by a delimiter
  * @param s         The string to split
  * @param delimiter The delimiter to split on

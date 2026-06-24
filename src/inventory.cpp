@@ -97,7 +97,8 @@ std::string format_table_row(const std::vector<std::string>& cells,
 }
 
 // Helper functions for looking up indexes.
-// "Not found" is signaled by returning the vector's own size
+// "Not found" is signaled 1
+// by returning the vector's own size
 std::size_t find_food_index(const Inventory& inventory, int id) {
     for (std::size_t i = 0; i < inventory.foods.size(); ++i) {
         if (inventory.foods[i].id == id) {
@@ -117,9 +118,12 @@ std::size_t find_beverage_index(const Inventory& inventory, int id) {
 }
 
 // Prints one ticket's pending order lines and returns their running
-// total. Shared by `view_orders` and `generate_reciept`
+// total. Shared by `view_orders` and `generate_receipt`.
+// Numbers are ticket-local (1, 2, 3 ...) so `remove_order` can map a
+// user's choice directly without knowing global vector positions.
 int print_order_lines(const Inventory& inventory, const std::string& ticket) {
     int total = 0;
+    int local_num = 1; // ticket-local display counter
     const std::string item_color = Color::Green;
 
     for (std::size_t i = 0; i < inventory.orders.size(); ++i) {
@@ -128,7 +132,7 @@ int print_order_lines(const Inventory& inventory, const std::string& ticket) {
             continue;
         }
 
-        const std::string prefix = "[" + std::to_string(i + 1) + "] ";
+        const std::string prefix = "[" + std::to_string(local_num++) + "] ";
 
         const std::size_t food_index =
             find_food_index(inventory, order.entry_id);
@@ -338,7 +342,7 @@ void show_table(const std::vector<std::string>& headers,
     // have overflowed the 65-character cap.
     widths = fit_column_widths(widths, MAX_TABLE_WIDTH);
 
-    // The `+---+---+` border line, reused for the top, the line under
+    // The `+---+---+` borderline, reused for the top, the line under
     // the header, and the bottom.
     std::string border = "+";
     for (std::size_t width : widths) {
@@ -355,15 +359,13 @@ void show_table(const std::vector<std::string>& headers,
 }
 
 std::string food_to_string(const Food& food) {
-    std::string result;
-    result = "name: " + food.name + ", ";
+    std::string result = "name: " + food.name + ", ";
     result += "price: " + std::to_string(food.base_price);
     return result;
 }
 
 std::string beverage_to_string(const Beverage& beverage) {
-    std::string result;
-    result = "name: " + beverage.name + ", ";
+    std::string result = "name: " + beverage.name + ", ";
     result += "price: " + std::to_string(beverage.base_price);
     return result;
 }
@@ -430,6 +432,7 @@ void create_entry(Inventory& inventory) {
 
             // Now we add it to inventory
             inventory.foods.push_back(e);
+            show_success("Food entry added successfully.");
 
             // Add it to logs
             const std::string component = "id=" + std::to_string(e.id);
@@ -458,6 +461,7 @@ void create_entry(Inventory& inventory) {
 
             // Now we add it to inventory
             inventory.beverages.push_back(e);
+            show_success("Beverage entry added successfully.");
 
             // Add it to logs
             const std::string component = "id=" + std::to_string(e.id);
@@ -702,7 +706,8 @@ void update_entry(Inventory& inventory) {
     }
 }
 
-void search_entry(Inventory& inventory) {
+
+void search_entry(const Inventory &inventory) {
     show_question("Search which product type?");
     show_option("[1]: Food");
     show_option("[2]: Beverage");
@@ -713,28 +718,82 @@ void search_entry(Inventory& inventory) {
         return;
     }
 
-    const int id = get_uint("Entry id: ");
+    show_question("Search by?");
+    show_option("[1]: ID");
+    show_option("[2]: Name");
+
+    const int search_by = get_uint("Answer > ");
 
     if (choice == 1) {
-        const std::size_t index = find_food_index(inventory, id);
-        if (index == inventory.foods.size()) {
-            show_error("No matching food entry found.");
-            return;
+        if (search_by == 1) {
+            // ── Search food by ID ──────────────────────────────────────────
+            const int id = get_uint("Entry id: ");
+            const std::size_t index = find_food_index(inventory, id);
+            if (index == inventory.foods.size() ||
+                inventory.foods[index].is_archived) {
+                show_error("No matching food entry found.");
+                return;
+            }
+            display_food_entry(inventory.foods[index]);
+        } else if (search_by == 2) {
+            // ── Search food by name (case-insensitive substring) ───────────
+            const std::string query = get_string("Name: ");
+            const std::string query_lower = to_lower(query);
+            bool found = false;
+            for (const auto &entry: inventory.foods) {
+                if (entry.is_archived) {
+                    continue;
+                }
+                if (to_lower(entry.product.name).find(query_lower) !=
+                    std::string::npos) {
+                    display_food_entry(entry);
+                    found = true;
+                }
+            }
+            if (!found) {
+                show_error("No matching food entry found.");
+            }
+        } else {
+            show_error("Invalid option.");
         }
-        display_food_entry(inventory.foods[index]);
     } else {
-        const std::size_t index = find_beverage_index(inventory, id);
-        if (index == inventory.beverages.size()) {
-            show_error("No matching beverage entry found.");
-            return;
+        if (search_by == 1) {
+            // ── Search beverage by ID ──────────────────────────────────────
+            const int id = get_uint("Entry id: ");
+            const std::size_t index = find_beverage_index(inventory, id);
+            if (index == inventory.beverages.size() ||
+                inventory.beverages[index].is_archived) {
+                show_error("No matching beverage entry found.");
+                return;
+            }
+            display_beverage_entry(inventory.beverages[index]);
+        } else if (search_by == 2) {
+            // ── Search beverage by name (case-insensitive substring) ───────
+            const std::string query = get_string("Name: ");
+            const std::string query_lower = to_lower(query);
+            bool found = false;
+            for (const auto &entry: inventory.beverages) {
+                if (entry.is_archived) {
+                    continue;
+                }
+                if (to_lower(entry.product.name).find(query_lower) !=
+                    std::string::npos) {
+                    display_beverage_entry(entry);
+                    found = true;
+                }
+            }
+            if (!found) {
+                show_error("No matching beverage entry found.");
+            }
+        } else {
+            show_error("Invalid option.");
         }
-        display_beverage_entry(inventory.beverages[index]);
     }
 }
 
 // ===== Inventory Methods =====
 
-void view_stocks(Inventory& inventory) {
+void view_stocks(const Inventory &inventory) {
     show_title("Stocks");
 
     const std::string sub_title_color =
@@ -781,9 +840,10 @@ void view_stocks(Inventory& inventory) {
     }
 }
 
-void view_inventory(Inventory& inventory) {
+void view_inventory(const Inventory &inventory) {
     show_title("Foods");
     for (const auto& entry : inventory.foods) {
+        if (entry.is_archived) continue;
         display_food_entry(entry);
     }
 
@@ -791,6 +851,7 @@ void view_inventory(Inventory& inventory) {
 
     show_title("Beverages");
     for (const auto& entry : inventory.beverages) {
+        if (entry.is_archived) continue;
         display_beverage_entry(entry);
     }
 }
@@ -1003,7 +1064,7 @@ void create_order(Inventory& inventory) {
         }
 
         // Stock isn't touched yet — this just reserves the amount.
-        // The actual deduction happens once generate_reciept is
+        // The actual deduction happens once generate_receipt is
         // confirmed, so two pending orders can never both claim more
         // than what's really on the shelf.
         inventory.orders.push_back(Order{ticket, entry.id, amount});
@@ -1057,7 +1118,7 @@ void create_order(Inventory& inventory) {
     }
 }
 
-void view_orders(Inventory& inventory) {
+void view_orders(const Inventory &inventory) {
     const std::string ticket = get_string("Customer/Ticket: ");
     show_ticket_orders(inventory, ticket);
 }
@@ -1065,35 +1126,34 @@ void view_orders(Inventory& inventory) {
 void remove_order(Inventory& inventory) {
     const std::string ticket = get_string("Customer/Ticket: ");
 
-    // Same numbered listing the receipt preview uses, so the number
-    // typed below always matches what's on screen right now.
+    // Show this ticket's orders with ticket-local numbering [1][2][3]...
+    // That's exactly what print_order_lines now produces, so whatever the
+    // user types maps directly into ticket_indices below.
     if (!show_ticket_orders(inventory, ticket)) {
         return;
     }
 
-    // Get user order choice.
-    // This is used for selecting which order to remove.
-    // Only for single-item removable though.
+    // Collect the global positions of every order that belongs to this
+    // ticket, in the same order they were just printed. Choice 1 ->
+    // ticket_indices[0], choice 2 -> ticket_indices[1], and so on.
+    std::vector<std::size_t> ticket_indices;
+    for (std::size_t i = 0; i < inventory.orders.size(); ++i) {
+        if (inventory.orders[i].ticket == ticket) {
+            ticket_indices.push_back(i);
+        }
+    }
+
     const int choice =
         get_uint("Which order number do you want to remove? (0 to cancel): ");
     if (choice <= 0 ||
-        static_cast<std::size_t>(choice) > inventory.orders.size()) {
+        static_cast<std::size_t>(choice) > ticket_indices.size()) {
         return;
     }
 
-    // Convert `choice` into `size_t` which is similar to `unsigned int`
-    // but more used for arrays, loops, and collection.
-    const std::size_t index = static_cast<std::size_t>(choice) - 1;
-
-    // The number shown only ever covered this ticket's orders, but
-    // someone could still type an arbitrary number so we double-check
-    // it's actually theirs before touching anything.
-    if (inventory.orders[index].ticket != ticket) {
-        show_error("That order number doesn't belong to this ticket.");
-        return;
-    }
-
-    const Order order = inventory.orders[index];
+    // Map the ticket-local choice to the real position in inventory.orders.
+    const std::size_t global_index =
+            ticket_indices[static_cast<std::size_t>(choice) - 1];
+    const Order order = inventory.orders[global_index];
 
     // Look up a display name for the confirmation prompt and falls back
     // to a generic label in the unlikely case neither list has it.
@@ -1119,7 +1179,7 @@ void remove_order(Inventory& inventory) {
 
     inventory.orders.erase(
         inventory.orders.begin() +
-        static_cast<std::vector<Order>::difference_type>(index));
+        static_cast<std::vector<Order>::difference_type>(global_index));
 
     save_log(create_log("SUCCESS", "id=" + std::to_string(order.entry_id),
                         "Removed pending order for " + product_name + " (x" +
@@ -1181,7 +1241,7 @@ void generate_receipt(Inventory& inventory) {
     }
 
     inventory.orders = kept;
-    save_log(create_log("SUCCESS", "generate_reciept",
+    save_log(create_log("SUCCESS", "generate_receipt",
                         "Receipt generated for ticket \"" + ticket + "\"."));
     show_success("Receipt generated.");
 }

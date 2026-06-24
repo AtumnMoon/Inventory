@@ -31,7 +31,7 @@ std::string create_log(const std::string& log_status,
 
 void save_log(const std::string& log_message) {
     // Open log file
-    const std::string file = "inventory.log";
+    const std::string file = "program.log";
     std::ofstream log_file(file, std::ios::app);
 
     // Check if its open

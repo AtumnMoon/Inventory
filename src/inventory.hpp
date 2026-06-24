@@ -23,7 +23,7 @@ struct Beverage {
  * @brief Represents the food item in inventory.
  */
 struct FoodEntry {
-    int id;                    /// @brief To index our product entry
+    int id{}; /// @brief To index our product entry
     Food product;              /// @brief What kind of Food it is?
     int current_stock = 0;     /// @brief How many we have in store?
     bool is_archived = false;  /// @brief Is it soft-deleted?
@@ -33,7 +33,7 @@ struct FoodEntry {
  * @brief Represents the beverage item in inventory.
  */
 struct BeverageEntry {
-    int id;                    /// @brief To index our product entry
+    int id{}; /// @brief To index our product entry
     Beverage product;          /// @brief What kind of Beverage it is?
     int current_stock = 0;     /// @brief How many we have in store?
     bool is_archived = false;  /// @brief Is it soft-deleted?
@@ -139,7 +139,7 @@ void update_entry(Inventory& inventory);
  * @brief Search for an entry in the inventory
  * @param inventory The inventory to search from
  */
-void search_entry(Inventory& inventory);
+void search_entry(const Inventory &inventory);
 
 // ===== Inventory Methods =====
 
@@ -149,13 +149,13 @@ void search_entry(Inventory& inventory);
  *        orders), and Stock_After_Ordering
  * @param inventory The inventory to view
  */
-void view_stocks(Inventory& inventory);
+void view_stocks(const Inventory &inventory);
 
 /**
  * @brief View the product entries in detail
  * @param inventory The product inventory
  */
-void view_inventory(Inventory& inventory);
+void view_inventory(const Inventory &inventory);
 
 /**
  * @brief Save the foods, beverages, and orders into their own CSV files
@@ -182,7 +182,7 @@ void create_order(Inventory& inventory);
  * @brief Ask for a customer/ticket first, then show only that ticket's
  *        pending orders and their running total
  */
-void view_orders(Inventory& inventory);
+void view_orders(const Inventory &inventory);
 
 /**
  * @brief Ask for a customer/ticket first, show only that ticket's

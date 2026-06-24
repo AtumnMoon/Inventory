@@ -1,3 +1,4 @@
+#include <cctype>
 #include <cstddef>
 #include <iostream>
 #include <limits>
@@ -19,6 +20,13 @@ void trim(std::string& s) {
     s.erase(0, start);
     const std::size_t end = s.find_last_not_of(whitespaces);
     s.erase(end + 1);
+}
+
+std::string to_lower(std::string s) {
+    for (char &c: s) {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+    return s;
 }
 
 std::vector<std::string> split(const std::string& s,
@@ -74,7 +82,7 @@ char get_char(const std::string& prompt) {
         }
 
         // Drop the rest of the line so the next prompt
-        // (whether get_char, `get_uint`, or get_string) starts clean
+        // (whether `get_char`, `get_uint`, or get_string) starts clean
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         // Return the valid result
@@ -312,7 +320,7 @@ std::string decodeCSV(const std::string& field) {
         return field;
     }
 
-    std::string result = "";
+    std::string result;
     // Loop inside the outer quotes
     for (size_t i = 1; i < field.size() - 1; ++i) {
         if (field[i] == '"' && i + 1 < field.size() - 1 &&
