@@ -178,7 +178,7 @@ void load_inventory(Inventory& inventory);
 /**
  * @brief Reserve an amount of a product as a pending order under a
  *        customer/ticket name (asked first). Stock isn't deducted yet
- *        that happens when generate_reciept is confirmed
+ *        that happens when `generate_receipt` is confirmed
  */
 void create_order(Inventory& inventory);
 
@@ -202,4 +202,4 @@ void remove_order(Inventory& inventory);
  *        receipt as generated. Other tickets' pending orders are
  *        untouched
  */
-void generate_reciept(Inventory& inventory);
+void generate_receipt(Inventory& inventory);

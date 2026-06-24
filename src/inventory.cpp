@@ -27,7 +27,7 @@ const std::string QUESTION_COLOR = Color::Cyan + Color::Bold;
 // matter how much content it holds, may end up wider than this.
 const std::size_t MAX_TABLE_WIDTH = 65;
 
-// Cuts text down to fit a column. Adds "..." to mark the cut when
+// Cuts text down to fit a column. Adds "…" to mark the cut when
 // there's room for it, so it stays obvious something got hidden instead
 // of silently dropping characters.
 std::string fit_cell(const std::string& text, std::size_t width) {
@@ -39,7 +39,7 @@ std::string fit_cell(const std::string& text, std::size_t width) {
         return text.substr(0, width);
     }
 
-    return text.substr(0, width - 3) + "...";
+    return text.substr(0, width - 3) + "…";
 }
 
 // Shrinks whichever column is currently widest, one character at a
@@ -47,7 +47,7 @@ std::string fit_cell(const std::string& text, std::size_t width) {
 // ever has a handful of columns, so the loop stays cheap.
 std::vector<std::size_t> fit_column_widths(std::vector<std::size_t> widths,
                                            std::size_t max_width) {
-    // Every column costs a leading "|" plus 2 padding spaces, and the
+    // Every column costs leading "|" plus 2 padding spaces, and the
     // row gets one extra trailing "|".
     const std::size_t overhead = widths.size() * 3 + 1;
 
@@ -81,9 +81,9 @@ std::vector<std::size_t> fit_column_widths(std::vector<std::size_t> widths,
     return widths;
 }
 
-// Lays out one row as "| cell | cell | ...". std::format's width spec
+// Lays out one row as "| cell | cell | …". `std::format's` width spec
 // ({:<{}}) does the left-align-and-pad in one call instead of manually
-// building padding strings. Hooray for std::format C++20's feature.
+// building padding strings. Hooray for std::format C++20 feature.
 std::string format_table_row(const std::vector<std::string>& cells,
                              const std::vector<std::size_t>& widths) {
     std::string line = "|";
@@ -175,10 +175,9 @@ bool has_ticket_orders(const Inventory& inventory, const std::string& ticket) {
     return false;
 }
 
-// Shows one ticket's pending orders as a title, numbered lines, and a
-// running total — or a plain "nothing here" message if it has none.
-// Returns whether there was anything to show, so callers know whether
-// to continue into their own next step.
+// Shows one ticket's pending orders as a title, numbered lines,
+// and a total or a plain "nothing here" message if it has none.
+// Return boolean status if it showed or not
 bool show_ticket_orders(const Inventory& inventory, const std::string& ticket) {
     if (!has_ticket_orders(inventory, ticket)) {
         show_info("No pending orders for that ticket.");
@@ -191,7 +190,7 @@ bool show_ticket_orders(const Inventory& inventory, const std::string& ticket) {
     return true;
 }
 
-// Sums every pending (not-yet-receipted) order amount for one product.
+// Sums pending (not-yet-receipted) order amount for one product.
 // Used by the stocks table, and by create_order/update_entry to make
 // sure stock changes never conflict with what's already reserved.
 int sum_pending_orders(const Inventory& inventory, int entry_id) {
@@ -340,7 +339,7 @@ void show_table(const std::vector<std::string>& headers,
     // have overflowed the 65-character cap.
     widths = fit_column_widths(widths, MAX_TABLE_WIDTH);
 
-    // The "+---+---+" border line, reused for the top, the line under
+    // The `+---+---+` border line, reused for the top, the line under
     // the header, and the bottom.
     std::string border = "+";
     for (std::size_t width : widths) {
@@ -467,10 +466,9 @@ void create_entry(Inventory& inventory) {
                                         " to beverage inventory!";
             save_log(create_log("SUCCESS", component, message));
         }
+    } else {
+        show_error("Invalid answer. Aborting creation.");
     }
-
-    // Exit
-    return;
 }
 
 void remove_entry(Inventory& inventory) {
@@ -799,46 +797,51 @@ void view_inventory(Inventory& inventory) {
 }
 
 void save_inventory(Inventory& inventory) {
-    // Foods -> foods.csv
+    // Foods -> `foods.csv`
     std::ofstream foods_file(FOODS_FILE);
     if (!foods_file.is_open()) {
         show_error("Failed to open \"" + FOODS_FILE + "\" for writing.");
     } else {
+        // Enter the headers first
         foods_file << "id,name,base_price,current_stock,is_archived\n";
         for (const auto& entry : inventory.foods) {
-            foods_file << entry.id << CSV_DELIMITER << entry.product.name
-                       << CSV_DELIMITER << entry.product.base_price
-                       << CSV_DELIMITER << entry.current_stock << CSV_DELIMITER
+            foods_file << entry.id << CSV_DELIMITER
+                       << encodeCSV(entry.product.name) << CSV_DELIMITER
+                       << entry.product.base_price << CSV_DELIMITER
+                       << entry.current_stock << CSV_DELIMITER
                        << (entry.is_archived ? 1 : 0) << '\n';
         }
         foods_file.close();
     }
 
-    // Beverages -> beverages.csv
+    // Beverages -> `beverages.csv`
     std::ofstream beverages_file(BEVERAGES_FILE);
     if (!beverages_file.is_open()) {
         show_error("Failed to open \"" + BEVERAGES_FILE + "\" for writing.");
     } else {
+        // Enter the headers first
         beverages_file << "id,name,base_price,current_stock,is_archived\n";
         for (const auto& entry : inventory.beverages) {
-            beverages_file << entry.id << CSV_DELIMITER << entry.product.name
-                           << CSV_DELIMITER << entry.product.base_price
-                           << CSV_DELIMITER << entry.current_stock
-                           << CSV_DELIMITER << (entry.is_archived ? 1 : 0)
-                           << '\n';
+            beverages_file << entry.id << CSV_DELIMITER
+                           << encodeCSV(entry.product.name) << CSV_DELIMITER
+                           << entry.product.base_price << CSV_DELIMITER
+                           << entry.current_stock << CSV_DELIMITER
+                           << (entry.is_archived ? 1 : 0) << '\n';
         }
         beverages_file.close();
     }
 
-    // Orders -> orders.csv
+    // Orders -> `orders.csv`
     std::ofstream orders_file(ORDERS_FILE);
     if (!orders_file.is_open()) {
         show_error("Failed to open \"" + ORDERS_FILE + "\" for writing.");
     } else {
+        // Enter the headers first
         orders_file << "ticket,entry_id,amount\n";
         for (const auto& order : inventory.orders) {
-            orders_file << order.ticket << CSV_DELIMITER << order.entry_id
-                        << CSV_DELIMITER << order.amount << '\n';
+            orders_file << encodeCSV(order.ticket) << CSV_DELIMITER
+                        << order.entry_id << CSV_DELIMITER << order.amount
+                        << '\n';
         }
         orders_file.close();
     }
@@ -855,7 +858,7 @@ void load_inventory(Inventory& inventory) {
 
     int max_id = 0;
 
-    // Foods <- foods.csv
+    // Foods <- `foods.csv`
     std::ifstream foods_file(FOODS_FILE);
     if (foods_file.is_open()) {
         std::string line;
@@ -873,7 +876,7 @@ void load_inventory(Inventory& inventory) {
 
             FoodEntry entry;
             entry.id = std::stoi(fields[0]);
-            entry.product.name = fields[1];
+            entry.product.name = decodeCSV(fields[1]);
             entry.product.base_price = std::stoi(fields[2]);
             entry.current_stock = std::stoi(fields[3]);
             entry.is_archived = (fields[4] == "1");
@@ -886,7 +889,7 @@ void load_inventory(Inventory& inventory) {
         foods_file.close();
     }
 
-    // Beverages <- beverages.csv
+    // Beverages <- `beverages.csv`
     std::ifstream beverages_file(BEVERAGES_FILE);
     if (beverages_file.is_open()) {
         std::string line;
@@ -904,7 +907,7 @@ void load_inventory(Inventory& inventory) {
 
             BeverageEntry entry;
             entry.id = std::stoi(fields[0]);
-            entry.product.name = fields[1];
+            entry.product.name = decodeCSV(fields[1]);
             entry.product.base_price = std::stoi(fields[2]);
             entry.current_stock = std::stoi(fields[3]);
             entry.is_archived = (fields[4] == "1");
@@ -917,7 +920,7 @@ void load_inventory(Inventory& inventory) {
         beverages_file.close();
     }
 
-    // Orders <- orders.csv
+    // Orders <- `orders.csv`
     std::ifstream orders_file(ORDERS_FILE);
     if (orders_file.is_open()) {
         std::string line;
@@ -934,7 +937,7 @@ void load_inventory(Inventory& inventory) {
             }
 
             Order order;
-            order.ticket = fields[0];
+            order.ticket = decodeCSV(fields[0]);
             order.entry_id = std::stoi(fields[1]);
             order.amount = std::stoi(fields[2]);
 
@@ -1069,6 +1072,9 @@ void remove_order(Inventory& inventory) {
         return;
     }
 
+    // Get user order choice.
+    // This is used for selecting which order to remove.
+    // Only for single-item removable though.
     const int choice =
         get_uint("Which order number do you want to remove? (0 to cancel): ");
     if (choice <= 0 ||
@@ -1076,11 +1082,13 @@ void remove_order(Inventory& inventory) {
         return;
     }
 
+    // Convert `choice` into `size_t` which is similar to `unsigned int`
+    // but more used for arrays, loops, and collection.
     const std::size_t index = static_cast<std::size_t>(choice) - 1;
 
     // The number shown only ever covered this ticket's orders, but
-    // someone could still type an arbitrary number so we double
-    // check it's actually theirs before touching anything.
+    // someone could still type an arbitrary number so we double-check
+    // it's actually theirs before touching anything.
     if (inventory.orders[index].ticket != ticket) {
         show_error("That order number doesn't belong to this ticket.");
         return;
@@ -1102,6 +1110,7 @@ void remove_order(Inventory& inventory) {
         }
     }
 
+    // We get user confirmation first since they might change their mind after.
     const bool confirmation = prompt_yes_no(
         "Remove order [" + std::to_string(choice) + "] " + product_name + " x" +
         std::to_string(order.amount) + "? (Y/n): ");
@@ -1120,7 +1129,7 @@ void remove_order(Inventory& inventory) {
     show_success("Order removed.");
 }
 
-void generate_reciept(Inventory& inventory) {
+void generate_receipt(Inventory& inventory) {
     const std::string ticket = get_string("Customer/Ticket: ");
 
     // Show what's pending first
@@ -1128,6 +1137,7 @@ void generate_reciept(Inventory& inventory) {
         return;
     }
 
+    // Again we ask for confirmation before proceeding
     const bool confirmation =
         prompt_yes_no("Generate receipt for these orders? (Y/n): ");
     if (!confirmation) {

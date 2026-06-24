@@ -28,7 +28,7 @@ int main() {
         switch (choice) {
             case 1: {
                 // Entry-related actions, grouped behind their own
-                // submenu so the top-level menu stays short.
+                // sub menu so the top-level menu stays short.
                 bool in_submenu = true;
                 while (in_submenu) {
                     show_title("Manage Entries");
@@ -85,7 +85,7 @@ int main() {
                             remove_order(inventory);
                             break;
                         case 4:
-                            generate_reciept(inventory);
+                            generate_receipt(inventory);
                             break;
                         case 0:
                             in_submenu = false;

@@ -3,9 +3,11 @@
 #include <string>
 #include <vector>
 
+// ===== String Utilities =====
+
 /**
  * @brief Remove leading and trailing whitespace
- * @param s The string to cleanup
+ * @param s The string to clean up
  */
 void trim(std::string& s);
 
@@ -13,10 +15,12 @@ void trim(std::string& s);
  * @brief Split a string into tokens by a delimiter
  * @param s         The string to split
  * @param delimiter The delimiter to split on
- * @return The list of tokens (never empty — at least one element)
+ * @return The list of strings (never empty with at least one element)
  */
 std::vector<std::string> split(const std::string& s,
                                const std::string& delimiter);
+
+// ===== User Input Utilities =====
 
 /**
  * @brief A prompt helper to get a single valid char from the user
@@ -61,3 +65,19 @@ std::string get_string_or_skip(const std::string& prompt,
  * @param prompt The prompt question to show
  */
 bool prompt_yes_no(const std::string& prompt);
+
+// ===== CSV File Utilities =====
+
+/**
+ * @brief An encoding helper for making CSV values safe
+ * @param field The word that must be safely wrap
+ * @return The encoded value
+ */
+std::string encodeCSV(const std::string& field);
+
+/**
+ * @brief A decoding helper for making CSV values safe
+ * @param field The word that must be unwrap
+ * @return The decoded value
+ */
+std::string decodeCSV(const std::string& field);

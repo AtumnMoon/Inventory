@@ -284,3 +284,44 @@ bool prompt_yes_no(const std::string& prompt) {
 
     return answer == 'y' || answer == 'Y';
 }
+
+std::string encodeCSV(const std::string& field) {
+    // Check if wrapping is actually required
+    if (field.find(',') == std::string::npos &&
+        field.find('"') == std::string::npos &&
+        field.find('\n') == std::string::npos &&
+        field.find('\r') == std::string::npos) {
+        return field;
+    }
+
+    std::string result = "\"";
+    for (char c : field) {
+        if (c == '"') {
+            result += "\"\"";  // Double up inner quotes
+        } else {
+            result += c;
+        }
+    }
+    result += "\"";
+    return result;
+}
+
+std::string decodeCSV(const std::string& field) {
+    // If it doesn't start and end with quotes, it's a raw unquoted field
+    if (field.size() < 2 || field.front() != '"' || field.back() != '"') {
+        return field;
+    }
+
+    std::string result = "";
+    // Loop inside the outer quotes
+    for (size_t i = 1; i < field.size() - 1; ++i) {
+        if (field[i] == '"' && i + 1 < field.size() - 1 &&
+            field[i + 1] == '"') {
+            result += '"';  // Convert`""` back to `"`
+            i++;            // Skip the second quote
+        } else {
+            result += field[i];
+        }
+    }
+    return result;
+}
